@@ -1,0 +1,67 @@
+package com.iwfc.domain.model;
+
+import com.iwfc.domain.exception.UnauthorizedAccessException;
+
+/**
+ * Abstraction: what every person in the system is. Each role decides its own permissions,
+ * so callers ask a {@code User} what it may do and never test for a concrete class (polymorphism).
+ * Fields are private and read through accessors (encapsulation).
+ */
+public abstract class User {
+
+    private final String id;
+    private final String name;
+
+    protected User(String id, String name) {
+        if (id == null || id.isBlank()) {
+            throw new IllegalArgumentException("User id is required");
+        }
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("User name is required");
+        }
+        this.id = id.trim();
+        this.name = name.trim();
+    }
+
+    public abstract String roleName();
+
+    public abstract boolean canManageEquipment();
+    public abstract boolean canManageMaintenance();
+    public abstract boolean canViewMaintenanceLog();
+    public abstract boolean canScheduleSessions();
+    public abstract boolean canReportFaults();
+    public abstract boolean canLogEquipmentUsage();
+    public abstract boolean canBookSessions();
+
+    public void ensureCanManageEquipment() { require(canManageEquipment(), "manage equipment"); }
+    public void ensureCanManageMaintenance() { require(canManageMaintenance(), "manage maintenance requests"); }
+    public void ensureCanViewMaintenanceLog() { require(canViewMaintenanceLog(), "view the maintenance log"); }
+    public void ensureCanScheduleSessions() { require(canScheduleSessions(), "schedule sessions"); }
+    public void ensureCanReportFaults() { require(canReportFaults(), "report faults"); }
+    public void ensureCanLogEquipmentUsage() { require(canLogEquipmentUsage(), "log equipment usage"); }
+    public void ensureCanBookSessions() { require(canBookSessions(), "book sessions"); }
+
+    private void require(boolean allowed, String action) {
+        if (!allowed) {
+            throw new UnauthorizedAccessException(roleName() + " " + name + " is not allowed to " + action);
+        }
+    }
+
+    public String id() { return id; }
+    public String name() { return name; }
+
+    @Override
+    public boolean equals(Object other) {
+        return other instanceof User that && id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return roleName() + " " + name + " (" + id + ")";
+    }
+}
