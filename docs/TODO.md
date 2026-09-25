@@ -12,8 +12,8 @@
 - [x] EquipmentFactory (Creational pattern)
 - [ ] FitnessSession: double-booking, operating hours, (optional) recurring weekly
 - [ ] MaintenanceRequest: urgency, Pending→Assigned→Completed transitions
-- [ ] User (abstract) + Administrator / Instructor / Member (polymorphism)
-- [ ] Custom exceptions: InvalidBooking, UnauthorizedAccess, DuplicateEquipment
+- [x] User (abstract) + Administrator / Instructor / Member (polymorphism)
+- [ ] Custom exceptions: InvalidBooking, UnauthorizedAccess (done), DuplicateEquipment (todo)
 - [ ] Intentional failing test for robustness verification
 ### Application
 - [ ] Repository interfaces (domain) + generic InMemoryRepository<T,ID>
