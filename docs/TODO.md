@@ -18,7 +18,7 @@
 ### Application
 - [x] Repository interfaces (domain) + generic InMemoryRepository<T,ID>
 - [ ] BookSessionUseCase, ReportFaultUseCase, AssignMaintenanceUseCase
-- [ ] Observer notifications on maintenance status change
+- [x] Observer notifications on maintenance status change
 - [ ] IWFCFacade (Structural pattern)
 - [ ] Access policy (role checks)
 - [ ] Use case integration tests (in-memory repos)
