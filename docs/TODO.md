@@ -9,7 +9,7 @@
 ### Domain (TDD, ZOMBIES: red → green → refactor commits)
 - [x] TimeSlot (record VO) + overlaps()
 - [x] Equipment: unique ID, status, location, usage hours, maintenance alert
-- [ ] EquipmentFactory (Creational pattern)
+- [x] EquipmentFactory (Creational pattern)
 - [ ] FitnessSession: double-booking, operating hours, (optional) recurring weekly
 - [ ] MaintenanceRequest: urgency, Pending→Assigned→Completed transitions
 - [ ] User (abstract) + Administrator / Instructor / Member (polymorphism)
