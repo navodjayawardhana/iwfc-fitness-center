@@ -13,15 +13,15 @@
 - [x] FitnessSession: double-booking, operating hours, (optional) recurring weekly
 - [x] MaintenanceRequest: urgency, Pending→Assigned→Completed transitions
 - [x] User (abstract) + Administrator / Instructor / Member (polymorphism)
-- [ ] Custom exceptions: InvalidBooking, UnauthorizedAccess (done), DuplicateEquipment (todo)
+- [x] Custom exceptions: InvalidBooking, UnauthorizedAccess, DuplicateEquipment
 - [ ] Intentional failing test for robustness verification
 ### Application
 - [x] Repository interfaces (domain) + generic InMemoryRepository<T,ID>
-- [ ] BookSessionUseCase, ReportFaultUseCase, AssignMaintenanceUseCase
+- [x] BookSessionUseCase, ReportFaultUseCase, AssignMaintenanceUseCase
 - [x] Observer notifications on maintenance status change
 - [ ] IWFCFacade (Structural pattern)
 - [ ] Access policy (role checks)
-- [ ] Use case integration tests (in-memory repos)
+- [x] Use case integration tests (in-memory repos)
 ### Delivery
 - [ ] ConsoleMenu + pre-populated data (minimum requirement done)
 - [ ] ArchUnit test: domain has no Spring/infrastructure dependency
