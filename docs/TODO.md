@@ -10,7 +10,7 @@
 - [x] TimeSlot (record VO) + overlaps()
 - [x] Equipment: unique ID, status, location, usage hours, maintenance alert
 - [x] EquipmentFactory (Creational pattern)
-- [ ] FitnessSession: double-booking, operating hours, (optional) recurring weekly
+- [x] FitnessSession: double-booking, operating hours, (optional) recurring weekly
 - [ ] MaintenanceRequest: urgency, Pending→Assigned→Completed transitions
 - [x] User (abstract) + Administrator / Instructor / Member (polymorphism)
 - [ ] Custom exceptions: InvalidBooking, UnauthorizedAccess (done), DuplicateEquipment (todo)
