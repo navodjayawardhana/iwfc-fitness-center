@@ -11,7 +11,7 @@
 - [x] Equipment: unique ID, status, location, usage hours, maintenance alert
 - [x] EquipmentFactory (Creational pattern)
 - [x] FitnessSession: double-booking, operating hours, (optional) recurring weekly
-- [ ] MaintenanceRequest: urgency, Pending→Assigned→Completed transitions
+- [x] MaintenanceRequest: urgency, Pending→Assigned→Completed transitions
 - [x] User (abstract) + Administrator / Instructor / Member (polymorphism)
 - [ ] Custom exceptions: InvalidBooking, UnauthorizedAccess (done), DuplicateEquipment (todo)
 - [ ] Intentional failing test for robustness verification
