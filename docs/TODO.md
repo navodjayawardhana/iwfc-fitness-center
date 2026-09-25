@@ -16,7 +16,7 @@
 - [ ] Custom exceptions: InvalidBooking, UnauthorizedAccess (done), DuplicateEquipment (todo)
 - [ ] Intentional failing test for robustness verification
 ### Application
-- [ ] Repository interfaces (domain) + generic InMemoryRepository<T,ID>
+- [x] Repository interfaces (domain) + generic InMemoryRepository<T,ID>
 - [ ] BookSessionUseCase, ReportFaultUseCase, AssignMaintenanceUseCase
 - [ ] Observer notifications on maintenance status change
 - [ ] IWFCFacade (Structural pattern)
