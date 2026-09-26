@@ -5,12 +5,20 @@ Java prototype for CMP 7001 (Advanced Programming) PRAC 1. It manages fitness eq
 Built with **DDD + Clean Architecture + TDD**. The domain is plain Java. The console menu, the REST API and the React UI are interchangeable delivery adapters over the same `IwfcFacade`.
 
 ## Requirements
-- JDK 25 (LTS) and Maven 3.9+
-- Node 22+ (only for the React UI)
+- JDK 25 (LTS) and Maven 3.9+ (backend)
+- Node 22+ (frontend)
+
+## Project layout
+```
+backend/    Java 25 + Maven: domain, application, infrastructure (console + Spring Boot REST API)
+frontend/   Vite + React + TypeScript + Tailwind CSS UI
+docs/       plan, todo, class diagram (PlantUML), report outline, video script
+```
 
 ## Run
 ```bash
-# tests (224) + coverage report in target/site/jacoco/index.html
+# backend: tests (224) + coverage report in backend/target/site/jacoco/index.html
+cd backend
 mvn test
 
 # 1. console menu
@@ -20,7 +28,9 @@ mvn -q compile exec:java -Dexec.mainClass=com.iwfc.Main
 mvn spring-boot:run
 
 # 3. React UI on http://localhost:5173 (needs the API running)
-cd frontend && npm install && npm run dev
+cd frontend
+npm install
+npm run dev          # npm run build = type-check (tsc) + production build
 ```
 
 Demo users (seeded): `A-1` Administrator, `I-1` and `I-2` Instructors, `M-1` and `M-2` Members. The REST API reads the acting user from the `X-User-Id` header (demo-level identity, no passwords).
@@ -34,7 +44,7 @@ React UI ─────┘        (application)            ^
 ```
 Dependencies point inward only. `ArchitectureTest` (ArchUnit) fails the build if the domain touches Spring, the application layer touches infrastructure, or a layer rule is broken.
 
-| Layer | Package | Contains |
+| Layer | Package (under `backend/src/main/java`) | Contains |
 |---|---|---|
 | Domain | `com.iwfc.domain` | Entities, value objects, aggregate roots, custom exceptions, `Repository<T, ID>` port |
 | Application | `com.iwfc.application` | Use cases, `IwfcFacade`, Observer-based notifications |

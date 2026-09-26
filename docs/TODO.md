@@ -27,7 +27,7 @@
 - [x] ArchUnit test: domain has no Spring/infrastructure dependency
 - [x] JaCoCo report, domain coverage >90% (domain.model 94.8%, overall 91.7%)
 - [x] Spring Boot REST API + ApiExceptionHandler
-- [x] React (Vite) UI: equipment, booking, maintenance, role switcher
+- [x] React (Vite + TypeScript + Tailwind) UI: equipment, booking, maintenance, role switcher
 ### Report & Video
 - [x] Class diagram + layer diagram (PlantUML) – docs/class-diagram.puml
 - [ ] Report 3000 words: rationale, patterns, ZOMBIES test table, bugs fixed, limitations, Harvard refs

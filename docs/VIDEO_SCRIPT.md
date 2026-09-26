@@ -24,4 +24,4 @@ Slide 1 of the PowerPoint must carry the video link (YouTube or OneDrive). Speak
 7. `I-2` → 6 (schedule in Studio A at 09:00) → "Invalid booking".
 
 ## Demo script (React + API)
-Start `mvn spring-boot:run` and `npm run dev`, open http://localhost:5173, use the "Signed in as" switcher to walk through the same steps.
+Start `mvn spring-boot:run` (in backend) and `npm run dev` (in frontend), open http://localhost:5173, use the "Signed in as" switcher to walk through the same steps.

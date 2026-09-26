@@ -40,7 +40,7 @@ Student ID, batch, declaration, file name `stXXXXXXXX_CMP7001_PRAC1`.
 ## 7. Testing and TDD [450]
 - ZOMBIES order, naming convention, red → green → refactor, commit history evidence.
 - Test pyramid: domain unit tests, use case tests with in-memory repos, facade end-to-end, ConsoleMenu scripted tests, REST MockMvc tests, ArchUnit rules.
-- Coverage (JaCoCo): quote the real numbers from `target/site/jacoco/index.html`.
+- Coverage (JaCoCo): quote the real numbers from `backend/target/site/jacoco/index.html`.
 - **Bugs found and fixed** (use real ones from the history): e.g. a stray `git add` put the implementation into the RED commit and was redone; test used `Instructor` type so a Member could not be passed, fixed by taking `User`; cancel notification wording. Add your own.
 - Robustness verification: `RobustnessVerificationTest`.
 
