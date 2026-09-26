@@ -14,7 +14,7 @@
 - [x] MaintenanceRequest: urgency, Pending→Assigned→Completed transitions
 - [x] User (abstract) + Administrator / Instructor / Member (polymorphism)
 - [x] Custom exceptions: InvalidBooking, UnauthorizedAccess, DuplicateEquipment
-- [ ] Intentional failing test for robustness verification
+- [ ] Intentional failing test for robustness verification (error-path tests exist; add deliberate demo test)
 ### Application
 - [x] Repository interfaces (domain) + generic InMemoryRepository<T,ID>
 - [x] BookSessionUseCase, ReportFaultUseCase, AssignMaintenanceUseCase
@@ -24,8 +24,8 @@
 - [x] Use case integration tests (in-memory repos)
 ### Delivery
 - [x] ConsoleMenu + pre-populated data (minimum requirement done)
-- [ ] ArchUnit test: domain has no Spring/infrastructure dependency
-- [ ] JaCoCo report, domain coverage >90%
+- [x] ArchUnit test: domain has no Spring/infrastructure dependency
+- [x] JaCoCo report, domain coverage >90% (domain.model 94.8%, overall 91.7%)
 - [ ] Spring Boot REST API + ApiExceptionHandler
 - [ ] React (Vite) UI: equipment, booking, maintenance, role switcher
 ### Report & Video
