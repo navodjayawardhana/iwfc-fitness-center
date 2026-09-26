@@ -23,7 +23,7 @@
 - [x] Access policy (role checks, via User polymorphism)
 - [x] Use case integration tests (in-memory repos)
 ### Delivery
-- [ ] ConsoleMenu + pre-populated data (minimum requirement done)
+- [x] ConsoleMenu + pre-populated data (minimum requirement done)
 - [ ] ArchUnit test: domain has no Spring/infrastructure dependency
 - [ ] JaCoCo report, domain coverage >90%
 - [ ] Spring Boot REST API + ApiExceptionHandler
