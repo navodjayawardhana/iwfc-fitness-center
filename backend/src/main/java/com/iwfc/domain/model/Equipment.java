@@ -47,11 +47,24 @@ public class Equipment {
         return hoursSinceMaintenance >= maintenanceThresholdHours;
     }
 
+    /** Operational -> Faulty. Reporting a fault on equipment that already needs attention changes nothing. */
     public void markFaulty() {
-        status = EquipmentStatus.FAULTY;
+        if (status == EquipmentStatus.OPERATIONAL) {
+            status = EquipmentStatus.FAULTY;
+        }
     }
 
+    /**
+     * Faulty -> Under Maintenance. Operational equipment may go straight to maintenance only when its
+     * preventative maintenance is due.
+     */
     public void startMaintenance() {
+        boolean repair = status == EquipmentStatus.FAULTY;
+        boolean preventative = status == EquipmentStatus.OPERATIONAL && needsMaintenance();
+        if (!repair && !preventative) {
+            throw new InvalidEquipmentOperationException(
+                    "Equipment " + id + " is " + status + " and cannot start maintenance now");
+        }
         status = EquipmentStatus.UNDER_MAINTENANCE;
     }
 
