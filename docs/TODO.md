@@ -26,7 +26,7 @@
 - [x] ConsoleMenu + pre-populated data (minimum requirement done)
 - [x] ArchUnit test: domain has no Spring/infrastructure dependency
 - [x] JaCoCo report, domain coverage >90% (domain.model 94.8%, overall 91.7%)
-- [ ] Spring Boot REST API + ApiExceptionHandler
+- [x] Spring Boot REST API + ApiExceptionHandler
 - [ ] React (Vite) UI: equipment, booking, maintenance, role switcher
 ### Report & Video
 - [ ] Class diagram + layer diagram (PlantUML)
