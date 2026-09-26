@@ -163,6 +163,22 @@ class MaintenanceUseCaseTest {
         assertThrows(ResourceNotFoundException.class, () -> maintenance.assign(admin, "MR-999", "Kamal"));
     }
 
+    // B - two requests for the same equipment must not break the equipment status cycle
+    @Test
+    void should_handle_two_requests_for_the_same_equipment_without_breaking_the_status_cycle() {
+        MaintenanceRequest first = report();
+        MaintenanceRequest second = report();
+
+        maintenance.assign(admin, first.id(), "Kamal");
+        assertDoesNotThrow(() -> maintenance.assign(admin, second.id(), "Nimal"));
+        assertEquals(EquipmentStatus.UNDER_MAINTENANCE, inventory.find("SB-04").status());
+
+        maintenance.complete(admin, first.id());
+        assertEquals(EquipmentStatus.OPERATIONAL, inventory.find("SB-04").status());
+        assertDoesNotThrow(() -> maintenance.complete(admin, second.id()));
+        assertEquals(EquipmentStatus.OPERATIONAL, inventory.find("SB-04").status());
+    }
+
     // S
     @Test
     void should_keep_the_technician_and_progress_notes_on_the_request() {
