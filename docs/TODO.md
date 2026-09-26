@@ -14,7 +14,7 @@
 - [x] MaintenanceRequest: urgency, Pending→Assigned→Completed transitions
 - [x] User (abstract) + Administrator / Instructor / Member (polymorphism)
 - [x] Custom exceptions: InvalidBooking, UnauthorizedAccess, DuplicateEquipment
-- [ ] Intentional failing test for robustness verification (error-path tests exist; add deliberate demo test)
+- [x] Robustness verification tests (RobustnessVerificationTest: deliberate error scenarios per custom exception)
 ### Application
 - [x] Repository interfaces (domain) + generic InMemoryRepository<T,ID>
 - [x] BookSessionUseCase, ReportFaultUseCase, AssignMaintenanceUseCase
