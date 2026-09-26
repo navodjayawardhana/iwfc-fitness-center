@@ -154,6 +154,72 @@ class EquipmentTest {
         assertThrows(InvalidEquipmentOperationException.class, () -> new Location(" "));
     }
 
+    // E - Exceptions: status transitions must follow Operational -> Faulty -> Under Maintenance -> Operational
+    @Test
+    void should_reject_starting_maintenance_when_equipment_is_operational_and_not_due() {
+        Equipment equipment = treadmill();
+
+        assertThrows(InvalidEquipmentOperationException.class, equipment::startMaintenance);
+        assertEquals(EquipmentStatus.OPERATIONAL, equipment.status());
+    }
+
+    @Test
+    void should_reject_starting_maintenance_when_it_is_already_under_maintenance() {
+        Equipment equipment = treadmill();
+        equipment.markFaulty();
+        equipment.startMaintenance();
+
+        assertThrows(InvalidEquipmentOperationException.class, equipment::startMaintenance);
+    }
+
+    // B - the preventative path is the one allowed shortcut: Operational -> Under Maintenance when due
+    @Test
+    void should_allow_preventative_maintenance_when_operational_but_due() {
+        Equipment equipment = treadmill();
+        equipment.logUsage(100);
+
+        equipment.startMaintenance();
+
+        assertEquals(EquipmentStatus.UNDER_MAINTENANCE, equipment.status());
+    }
+
+    @Test
+    void should_keep_the_status_when_a_fault_is_reported_on_equipment_that_is_already_faulty() {
+        Equipment equipment = treadmill();
+        equipment.markFaulty();
+
+        equipment.markFaulty();
+
+        assertEquals(EquipmentStatus.FAULTY, equipment.status());
+    }
+
+    @Test
+    void should_keep_the_status_when_a_fault_is_reported_during_maintenance() {
+        Equipment equipment = treadmill();
+        equipment.markFaulty();
+        equipment.startMaintenance();
+
+        equipment.markFaulty();
+
+        assertEquals(EquipmentStatus.UNDER_MAINTENANCE, equipment.status());
+    }
+
+    // S - the full status cycle
+    @Test
+    void should_move_through_faulty_under_maintenance_and_back_to_operational() {
+        Equipment equipment = treadmill();
+        assertEquals(EquipmentStatus.OPERATIONAL, equipment.status());
+
+        equipment.markFaulty();
+        assertEquals(EquipmentStatus.FAULTY, equipment.status());
+
+        equipment.startMaintenance();
+        assertEquals(EquipmentStatus.UNDER_MAINTENANCE, equipment.status());
+
+        equipment.completeMaintenance();
+        assertEquals(EquipmentStatus.OPERATIONAL, equipment.status());
+    }
+
     // S - Simple / happy path
     @Test
     void should_be_available_when_active_and_operational() {

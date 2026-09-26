@@ -42,7 +42,9 @@ public class MaintenanceUseCase {
         MaintenanceRequest request = findRequest(requestId);
         request.assignTo(administrator, technician);
         Equipment item = findEquipment(request.equipmentId());
-        item.startMaintenance();
+        if (!item.isUnderMaintenance()) {
+            item.startMaintenance();
+        }
         equipment.save(item);
         save(request);
     }
@@ -58,7 +60,9 @@ public class MaintenanceUseCase {
         MaintenanceRequest request = findRequest(requestId);
         request.complete(administrator);
         Equipment item = findEquipment(request.equipmentId());
-        item.completeMaintenance();
+        if (item.isUnderMaintenance()) {
+            item.completeMaintenance();
+        }
         equipment.save(item);
         save(request);
     }
