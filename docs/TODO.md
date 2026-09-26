@@ -19,8 +19,8 @@
 - [x] Repository interfaces (domain) + generic InMemoryRepository<T,ID>
 - [x] BookSessionUseCase, ReportFaultUseCase, AssignMaintenanceUseCase
 - [x] Observer notifications on maintenance status change
-- [ ] IWFCFacade (Structural pattern)
-- [ ] Access policy (role checks)
+- [x] IWFCFacade (Structural pattern)
+- [x] Access policy (role checks, via User polymorphism)
 - [x] Use case integration tests (in-memory repos)
 ### Delivery
 - [ ] ConsoleMenu + pre-populated data (minimum requirement done)
