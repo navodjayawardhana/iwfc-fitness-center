@@ -69,7 +69,7 @@ public class Equipment {
     }
 
     public void completeMaintenance() {
-        if (status != EquipmentStatus.UNDER_MAINTENANCE) {
+        if (!isUnderMaintenance()) {
             throw new InvalidEquipmentOperationException("Equipment " + id + " is not under maintenance");
         }
         status = EquipmentStatus.OPERATIONAL;
@@ -86,6 +86,10 @@ public class Equipment {
 
     public void relocate(Location newLocation) {
         this.location = Objects.requireNonNull(newLocation, "Equipment location is required");
+    }
+
+    public boolean isUnderMaintenance() {
+        return status == EquipmentStatus.UNDER_MAINTENANCE;
     }
 
     public boolean isAvailableForSessions() {

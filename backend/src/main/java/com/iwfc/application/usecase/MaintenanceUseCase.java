@@ -3,7 +3,6 @@ package com.iwfc.application.usecase;
 import com.iwfc.application.notification.NotificationService;
 import com.iwfc.domain.exception.ResourceNotFoundException;
 import com.iwfc.domain.model.Equipment;
-import com.iwfc.domain.model.EquipmentStatus;
 import com.iwfc.domain.model.MaintenanceRequest;
 import com.iwfc.domain.model.Urgency;
 import com.iwfc.domain.model.User;
@@ -43,7 +42,7 @@ public class MaintenanceUseCase {
         MaintenanceRequest request = findRequest(requestId);
         request.assignTo(administrator, technician);
         Equipment item = findEquipment(request.equipmentId());
-        if (item.status() != EquipmentStatus.UNDER_MAINTENANCE) {
+        if (!item.isUnderMaintenance()) {
             item.startMaintenance();
         }
         equipment.save(item);
@@ -61,7 +60,7 @@ public class MaintenanceUseCase {
         MaintenanceRequest request = findRequest(requestId);
         request.complete(administrator);
         Equipment item = findEquipment(request.equipmentId());
-        if (item.status() == EquipmentStatus.UNDER_MAINTENANCE) {
+        if (item.isUnderMaintenance()) {
             item.completeMaintenance();
         }
         equipment.save(item);
