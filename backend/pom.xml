@@ -13,9 +13,22 @@
         <maven.compiler.release>25</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.parameters>true</maven.compiler.parameters>
+        <!-- Intentionally failing demo tests are kept out of the normal build; see the show-failure profile -->
+        <excludedGroups>intentional-failure</excludedGroups>
         <spring-boot.version>4.1.1</spring-boot.version>
         <archunit.version>1.5.1</archunit.version>
     </properties>
+
+    <profiles>
+        <!-- mvn test -Pshow-failure : runs ONLY the intentionally failing tests and is expected to fail -->
+        <profile>
+            <id>show-failure</id>
+            <properties>
+                <groups>intentional-failure</groups>
+                <excludedGroups>none</excludedGroups>
+            </properties>
+        </profile>
+    </profiles>
 
     <dependencyManagement>
         <dependencies>

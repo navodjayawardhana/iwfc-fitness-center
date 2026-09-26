@@ -15,6 +15,7 @@
 - [x] User (abstract) + Administrator / Instructor / Member (polymorphism)
 - [x] Custom exceptions: InvalidBooking, UnauthorizedAccess, DuplicateEquipment
 - [x] Robustness verification tests (RobustnessVerificationTest: deliberate error scenarios per custom exception)
+- [x] Intentional failing tests (IntentionalFailureDemoTest, mvn test -Pshow-failure)
 ### Application
 - [x] Repository interfaces (domain) + generic InMemoryRepository<T,ID>
 - [x] BookSessionUseCase, ReportFaultUseCase, AssignMaintenanceUseCase

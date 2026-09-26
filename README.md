@@ -17,7 +17,7 @@ docs/       plan, todo, class diagram (PlantUML), report outline, video script
 
 ## Run
 ```bash
-# backend: tests (224) + coverage report in backend/target/site/jacoco/index.html
+# backend: tests (237) + coverage report in backend/target/site/jacoco/index.html
 cd backend
 mvn test
 
@@ -76,5 +76,11 @@ Dependencies point inward only. `ArchitectureTest` (ArchUnit) fails the build if
 
 ## Testing (TDD)
 Tests are written first, in ZOMBIES order (Zero, One, Many, Boundaries, Interface, Exceptions, Simple) and named `should_<result>_when_<condition>`. Git history shows the red → green pairs (`test: … (RED)` then `feat: … (GREEN)`).
+
+**Intentional failing tests** (`IntentionalFailureDemoTest`, tagged `intentional-failure`) expect an illegal action to succeed, so they fail on purpose and the report shows the custom exception being thrown. They are excluded from the normal build. Run them alone:
+```bash
+cd backend
+mvn test -Pshow-failure     # expected: 3 errors (InvalidBooking, UnauthorizedAccess, DuplicateEquipment)
+```
 
 `RobustnessVerificationTest` drives the system into each error condition on purpose and checks the right exception, its message, and that state is left unchanged.
