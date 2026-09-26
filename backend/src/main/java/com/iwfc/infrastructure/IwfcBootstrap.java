@@ -1,6 +1,7 @@
 package com.iwfc.infrastructure;
 
 import com.iwfc.application.facade.IwfcFacade;
+import com.iwfc.application.notification.AdminAlertNotifier;
 import com.iwfc.application.notification.AdminMaintenanceLog;
 import com.iwfc.application.notification.NotificationService;
 import com.iwfc.application.notification.ReporterNotifier;
@@ -82,6 +83,7 @@ public final class IwfcBootstrap {
         AdminMaintenanceLog activityLog = new AdminMaintenanceLog();
         notifications.subscribe(new ReporterNotifier(notifications));
         notifications.subscribe(activityLog);
+        notifications.subscribe(new AdminAlertNotifier(notifications, users));
 
         EquipmentInventoryUseCase inventory =
                 new EquipmentInventoryUseCase(equipment, new EquipmentFactory(), notifications);
