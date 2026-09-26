@@ -1,0 +1,107 @@
+@startuml
+title IWFC – class diagram (dependencies point inward)
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+
+package "domain" #E8F5E9 {
+  abstract class User {
+    -id: String
+    -name: String
+    +{abstract} roleName(): String
+    +{abstract} canManageEquipment(): boolean
+    +{abstract} canBookSessions(): boolean
+    +ensureCanManageEquipment()
+  }
+  class Administrator
+  class Instructor
+  class Member
+  User <|-- Administrator
+  User <|-- Instructor
+  User <|-- Member
+
+  class Equipment <<aggregate root>> {
+    -id: String
+    -status: EquipmentStatus
+    -hoursSinceMaintenance: double
+    +logUsage(hours)
+    +needsMaintenance(): boolean
+    +markFaulty()
+    +startMaintenance()
+    +completeMaintenance()
+  }
+  class EquipmentFactory <<Factory>> {
+    +create(type, id, name, location): Equipment
+  }
+  class FitnessSession {
+    -capacity: int
+    +book(User)
+    +cancel(User)
+    +conflictsWith(FitnessSession): boolean
+    +repeatedAfterWeeks(n): FitnessSession
+  }
+  class SessionSchedule <<aggregate root>> {
+    +schedule(FitnessSession)
+    +scheduleWeekly(FitnessSession, weeks)
+  }
+  class MaintenanceRequest {
+    -status: RequestStatus
+    +assignTo(User, technician)
+    +complete(User)
+    +pullEvents(): List
+  }
+  class TimeSlot <<record, value object>> {
+    +overlaps(TimeSlot): boolean
+  }
+  class Location <<record, value object>>
+  class MaintenanceStatusChanged <<record, domain event>>
+  interface "Repository<T, ID>" as Repository <<port>>
+
+  EquipmentFactory ..> Equipment : creates
+  SessionSchedule "1" o-- "*" FitnessSession
+  FitnessSession --> TimeSlot
+  FitnessSession --> Location
+  FitnessSession "*" --> "*" Equipment
+  FitnessSession --> User : instructor, members
+  Equipment --> Location
+  MaintenanceRequest --> User : reportedBy
+  MaintenanceRequest ..> MaintenanceStatusChanged : records
+}
+
+package "application" #E3F2FD {
+  class IwfcFacade <<Facade>>
+  class EquipmentInventoryUseCase
+  class BookSessionUseCase
+  class MaintenanceUseCase
+  class NotificationService <<Subject>> {
+    +subscribe(MaintenanceObserver)
+    +publish(MaintenanceStatusChanged)
+  }
+  interface MaintenanceObserver <<Observer>>
+  class ReporterNotifier
+  class AdminMaintenanceLog
+
+  IwfcFacade --> EquipmentInventoryUseCase
+  IwfcFacade --> BookSessionUseCase
+  IwfcFacade --> MaintenanceUseCase
+  MaintenanceUseCase --> NotificationService
+  NotificationService o-- MaintenanceObserver
+  MaintenanceObserver <|.. ReporterNotifier
+  MaintenanceObserver <|.. AdminMaintenanceLog
+}
+
+package "infrastructure" #FFF3E0 {
+  class "InMemoryRepository<T, ID>" as InMemoryRepository
+  class IwfcBootstrap <<composition root>>
+  class ConsoleMenu
+  class "Spring Boot REST controllers" as Rest
+}
+
+Repository <|.. InMemoryRepository
+EquipmentInventoryUseCase --> Repository
+BookSessionUseCase --> SessionSchedule
+MaintenanceUseCase --> Repository
+EquipmentInventoryUseCase --> EquipmentFactory
+ConsoleMenu --> IwfcFacade
+Rest --> IwfcFacade
+IwfcBootstrap ..> IwfcFacade : wires
+@enduml
