@@ -1,5 +1,5 @@
 @startuml
-title IWFC – class diagram (dependencies point inward)
+title FitPulse (IWFC) – class diagram (dependencies point inward)
 skinparam classAttributeIconSize 0
 skinparam packageStyle rectangle
 

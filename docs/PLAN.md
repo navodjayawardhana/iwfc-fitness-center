@@ -1,4 +1,4 @@
-# IWFC – CMP 7001 PRAC 1 Plan (target: 80+)
+# FitPulse (IWFC) – CMP 7001 PRAC 1 Plan (target: 80+)
 
 ## Context
 Assignment: Java prototype for the Intelligent Wellness and Fitness Center (IWFC) – equipment tracking, session scheduling, maintenance reporting. 75% weighting, 3000-word report (PDF), 10-min video, GitHub repo. Workspace `E:\Advance programingg` is empty except the brief (`CMP 7001_S1_PRAC1_25-26.docx`), so this is greenfield.

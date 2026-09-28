@@ -30,8 +30,13 @@ export default function LoginScreen({ onSignedIn }: Props) {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4">
-      <h1 className="text-3xl font-bold tracking-wide">FitPulse</h1>
-      <p className={`mb-6 ${muted}`}>Intelligent Wellness and Fitness Center</p>
+      <div className="mb-6 flex items-center gap-3">
+        <img src="/logo.svg" alt="" className="h-14 w-14" />
+        <div>
+          <h1 className="text-3xl font-bold tracking-wide">FitPulse</h1>
+          <p className={muted}>Intelligent Wellness and Fitness Center</p>
+        </div>
+      </div>
 
       <form className={`${card} flex flex-col gap-3`} onSubmit={submit}>
         <h2 className="text-lg font-semibold">Sign in</h2>

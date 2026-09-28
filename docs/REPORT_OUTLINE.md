@@ -6,7 +6,7 @@ Write this in your own words and check every claim against the code. Word budget
 Student ID, batch, declaration, file name `stXXXXXXXX_CMP7001_PRAC1`.
 
 ## 1. Introduction and problem analysis [250]
-- The IWFC scenario, the three actors, what the manual system gets wrong.
+- The FitPulse (IWFC) scenario, the three actors, what the manual system gets wrong.
 - Functional requirements → where each is implemented (table: requirement, class, test).
 - Scope and assumptions: in-memory data, demo-level identity, operating hours 06:00–22:00.
 

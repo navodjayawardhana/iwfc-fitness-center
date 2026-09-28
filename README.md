@@ -1,4 +1,4 @@
-# IWFC – Intelligent Wellness and Fitness Center
+# FitPulse – Intelligent Wellness and Fitness Center (IWFC)
 
 Java prototype for CMP 7001 (Advanced Programming) PRAC 1. It manages fitness equipment, session scheduling and maintenance reporting for three roles: **Administrator**, **Instructor** and **Member**.
 
