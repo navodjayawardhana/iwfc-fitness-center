@@ -12,7 +12,7 @@ public final class Main {
     }
 
     public static void main(String[] args) {
-        new ConsoleMenu(IwfcBootstrap.seeded(), System.in, System.out, supportsColour()).run();
+        new ConsoleMenu(IwfcBootstrap.seededSecure(), System.in, System.out, supportsColour()).run();
     }
 
     /** Colours only when a real terminal is attached and the user has not opted out (NO_COLOR). */

@@ -2,14 +2,18 @@ package com.iwfc.application.facade;
 
 import com.iwfc.application.notification.AdminMaintenanceLog;
 import com.iwfc.application.notification.NotificationService;
+import com.iwfc.application.security.AuthSession;
+import com.iwfc.application.usecase.AuthenticationUseCase;
 import com.iwfc.application.usecase.BookSessionUseCase;
 import com.iwfc.application.usecase.EquipmentInventoryUseCase;
 import com.iwfc.application.usecase.MaintenanceUseCase;
+import com.iwfc.application.usecase.UserAccountUseCase;
 import com.iwfc.domain.exception.ResourceNotFoundException;
 import com.iwfc.domain.model.Equipment;
 import com.iwfc.domain.model.EquipmentType;
 import com.iwfc.domain.model.FitnessSession;
 import com.iwfc.domain.model.Location;
+import com.iwfc.domain.model.Role;
 import com.iwfc.domain.model.MaintenanceRequest;
 import com.iwfc.domain.model.TimeSlot;
 import com.iwfc.domain.model.Urgency;
@@ -31,16 +35,21 @@ public class IwfcFacade {
     private final NotificationService notifications;
     private final AdminMaintenanceLog activityLog;
     private final Repository<User, String> users;
+    private final AuthenticationUseCase authentication;
+    private final UserAccountUseCase accounts;
 
     public IwfcFacade(EquipmentInventoryUseCase inventory, BookSessionUseCase sessions, MaintenanceUseCase maintenance,
                       NotificationService notifications, AdminMaintenanceLog activityLog,
-                      Repository<User, String> users) {
+                      Repository<User, String> users, AuthenticationUseCase authentication,
+                      UserAccountUseCase accounts) {
         this.inventory = inventory;
         this.sessions = sessions;
         this.maintenance = maintenance;
         this.notifications = notifications;
         this.activityLog = activityLog;
         this.users = users;
+        this.authentication = authentication;
+        this.accounts = accounts;
     }
 
     // ---- accounts -------------------------------------------------------------------------------
@@ -49,9 +58,29 @@ public class IwfcFacade {
         return users.findById(userId).orElseThrow(() -> new ResourceNotFoundException("user", userId));
     }
 
+    public AuthSession signIn(String userId, String password) {
+        return authentication.signIn(userId, password);
+    }
+
+    /** Finds the signed-in user for a bearer token; fails if it is unknown, expired or the user is deactivated. */
+    public User authenticate(String token) {
+        return authentication.authenticate(token);
+    }
+
+    public void signOut(String token) {
+        authentication.signOut(token);
+    }
+
     public List<User> listUsers(User actor) {
-        actor.ensureCanManageEquipment();
-        return users.findAll();
+        return accounts.listAll(actor);
+    }
+
+    public User registerUser(User actor, Role role, String id, String name, String password) {
+        return accounts.register(actor, role, id, name, password);
+    }
+
+    public void deactivateUser(User actor, String userId) {
+        accounts.deactivate(actor, userId);
     }
 
     // ---- equipment ------------------------------------------------------------------------------
