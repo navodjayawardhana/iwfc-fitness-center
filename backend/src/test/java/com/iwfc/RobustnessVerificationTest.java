@@ -32,9 +32,9 @@ class RobustnessVerificationTest {
     private static final LocalDate NEXT_MONDAY = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY));
 
     private final IwfcFacade system = IwfcBootstrap.seeded();
-    private final User admin = system.login("A-1");
-    private final User instructor = system.login("I-1");
-    private final User member = system.login("M-1");
+    private final User admin = system.findUser("A-1");
+    private final User instructor = system.findUser("I-1");
+    private final User member = system.findUser("M-1");
 
     @Test
     @DisplayName("Invalid booking: double-booking the same studio is rejected and the schedule is unchanged")
@@ -43,7 +43,7 @@ class RobustnessVerificationTest {
         TimeSlot yogaTime = system.findSession("S-1").slot();
 
         InvalidBookingException error = assertThrows(InvalidBookingException.class, () -> system.scheduleSession(
-                system.login("I-2"), "CLASH", "Clashing class", new Location("Studio A"), yogaTime, 10, List.of()));
+                system.findUser("I-2"), "CLASH", "Clashing class", new Location("Studio A"), yogaTime, 10, List.of()));
 
         assertTrue(error.getMessage().contains("S-1"), "message should name the session it clashes with");
         assertEquals(before, system.allSessions().size());

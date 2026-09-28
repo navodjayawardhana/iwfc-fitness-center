@@ -93,9 +93,9 @@ class AdminAlertNotifierTest {
     @Test
     void should_alert_the_administrator_when_an_instructor_logs_usage_past_the_threshold() {
         IwfcFacade system = IwfcBootstrap.seeded();
-        User admin = system.login("A-1");
+        User admin = system.findUser("A-1");
 
-        system.logEquipmentUsage(system.login("I-1"), "TM-01", 100);
+        system.logEquipmentUsage(system.findUser("I-1"), "TM-01", 100);
 
         assertEquals(1, system.inbox(admin).size());
         assertTrue(system.inbox(admin).get(0).contains("TM-01"));
