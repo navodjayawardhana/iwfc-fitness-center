@@ -77,13 +77,13 @@ class ConsoleViewTest {
 
     // B - the menu: sections, contiguous numbering, role hints
     @Test
-    void should_group_the_menu_into_sections_with_numbers_one_to_twenty_three_and_exit() {
+    void should_group_the_menu_into_sections_with_numbers_one_to_twenty_four_and_exit() {
         String output = render(view -> view.menu(new Member("M-1", "Supun")));
 
-        for (String section : List.of("EQUIPMENT", "SESSIONS", "MAINTENANCE", "ACCOUNT", "USER ACCOUNTS")) {
+        for (String section : List.of("EQUIPMENT", "SESSIONS", "MAINTENANCE", "ACCOUNT", "USER ACCOUNTS", "REMINDERS")) {
             assertTrue(output.contains(section), "missing section " + section);
         }
-        for (int number = 1; number <= 23; number++) {
+        for (int number = 1; number <= 24; number++) {
             assertTrue(output.matches("(?s).*(^|\\R)\\s*" + number + "\\s{2,}\\S.*"), "missing option " + number);
         }
         assertTrue(output.contains("0  Exit"));

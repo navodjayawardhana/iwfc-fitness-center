@@ -117,6 +117,14 @@ class UserTest {
         assertFalse(someone.isActive());
     }
 
+    @Test
+    void should_let_administrators_and_instructors_send_reminders_but_not_members() {
+        assertTrue(admin.canSendReminders());
+        assertTrue(instructor.canSendReminders());
+        assertFalse(member.canSendReminders());
+        assertThrows(UnauthorizedAccessException.class, member::ensureCanSendReminders);
+    }
+
     // S
     @Test
     void should_not_throw_when_user_holds_the_permission() {
