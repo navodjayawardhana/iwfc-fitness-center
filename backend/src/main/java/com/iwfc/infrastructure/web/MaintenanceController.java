@@ -31,44 +31,44 @@ public class MaintenanceController {
 
     /** All requests for administrators; {@code ?mine=true} gives a reporter only their own. */
     @GetMapping("/api/maintenance")
-    List<MaintenanceResponse> list(@RequestHeader("X-User-Id") String userId,
+    List<MaintenanceResponse> list(@RequestHeader("Authorization") String authorization,
                                    @RequestParam(defaultValue = "false") boolean mine) {
-        User user = system.findUser(userId);
+        User user = ApiAuth.user(system, authorization);
         List<MaintenanceRequest> requests = mine ? system.myMaintenanceRequests(user) : system.maintenanceRequests(user);
         return requests.stream().map(MaintenanceResponse::from).toList();
     }
 
     @GetMapping("/api/maintenance/activity-log")
-    List<String> activityLog(@RequestHeader("X-User-Id") String userId) {
-        return system.maintenanceActivityLog(system.findUser(userId));
+    List<String> activityLog(@RequestHeader("Authorization") String authorization) {
+        return system.maintenanceActivityLog(ApiAuth.user(system, authorization));
     }
 
     @PostMapping("/api/maintenance")
     @ResponseStatus(HttpStatus.CREATED)
-    MaintenanceResponse report(@RequestHeader("X-User-Id") String userId, @RequestBody FaultRequest request) {
-        return MaintenanceResponse.from(system.reportFault(system.findUser(userId), request.equipmentId(),
+    MaintenanceResponse report(@RequestHeader("Authorization") String authorization, @RequestBody FaultRequest request) {
+        return MaintenanceResponse.from(system.reportFault(ApiAuth.user(system, authorization), request.equipmentId(),
                 request.description(), ApiDtos.enumOf(Urgency.class, request.urgency())));
     }
 
     @PostMapping("/api/maintenance/{id}/assign")
-    MaintenanceResponse assign(@RequestHeader("X-User-Id") String userId, @PathVariable String id,
+    MaintenanceResponse assign(@RequestHeader("Authorization") String authorization, @PathVariable String id,
                                @RequestBody AssignRequest request) {
-        User admin = system.findUser(userId);
+        User admin = ApiAuth.user(system, authorization);
         system.assignMaintenance(admin, id, request.technician());
         return find(admin, id);
     }
 
     @PostMapping("/api/maintenance/{id}/progress")
-    MaintenanceResponse progress(@RequestHeader("X-User-Id") String userId, @PathVariable String id,
+    MaintenanceResponse progress(@RequestHeader("Authorization") String authorization, @PathVariable String id,
                                  @RequestBody ProgressRequest request) {
-        User admin = system.findUser(userId);
+        User admin = ApiAuth.user(system, authorization);
         system.updateMaintenanceProgress(admin, id, request.note());
         return find(admin, id);
     }
 
     @PostMapping("/api/maintenance/{id}/complete")
-    MaintenanceResponse complete(@RequestHeader("X-User-Id") String userId, @PathVariable String id) {
-        User admin = system.findUser(userId);
+    MaintenanceResponse complete(@RequestHeader("Authorization") String authorization, @PathVariable String id) {
+        User admin = ApiAuth.user(system, authorization);
         system.completeMaintenance(admin, id);
         return find(admin, id);
     }

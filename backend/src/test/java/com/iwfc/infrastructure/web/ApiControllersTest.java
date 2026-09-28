@@ -11,6 +11,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
@@ -34,38 +36,129 @@ class ApiControllersTest {
             .setControllerAdvice(new ApiExceptionHandler())
             .build();
 
-    private static MockHttpServletRequestBuilder as(String userId, MockHttpServletRequestBuilder request) {
-        return request.header("X-User-Id", userId).contentType(MediaType.APPLICATION_JSON);
+    private final Map<String, String> tokens = new HashMap<>();
+
+    private String token(String userId) {
+        return tokens.computeIfAbsent(userId, id -> system.signIn(id, IwfcBootstrap.DEMO_PASSWORD).token());
     }
 
-    // ---- accounts -------------------------------------------------------------------------------
+    /** Sends the request as a signed-in user, using a real bearer token from the facade. */
+    private MockHttpServletRequestBuilder as(String userId, MockHttpServletRequestBuilder request) {
+        return request.header("Authorization", "Bearer " + token(userId)).contentType(MediaType.APPLICATION_JSON);
+    }
+
+    private static String login(String userId, String password) {
+        return "{\"userId\":\"" + userId + "\",\"password\":\"" + password + "\"}";
+    }
+
+    // ---- accounts and authentication ------------------------------------------------------------
 
     @Test
-    void should_log_in_a_known_user_and_return_their_role() throws Exception {
-        mvc.perform(post("/api/login").contentType(MediaType.APPLICATION_JSON).content("{\"userId\":\"M-1\"}"))
+    void should_sign_in_with_the_right_password_and_return_a_token_and_the_user() throws Exception {
+        mvc.perform(post("/api/login").contentType(MediaType.APPLICATION_JSON)
+                        .content(login("M-1", IwfcBootstrap.DEMO_PASSWORD)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value("M-1"))
-                .andExpect(jsonPath("$.role").value("Member"));
+                .andExpect(jsonPath("$.token").isNotEmpty())
+                .andExpect(jsonPath("$.expiresAt").isNotEmpty())
+                .andExpect(jsonPath("$.user.id").value("M-1"))
+                .andExpect(jsonPath("$.user.role").value("Member"));
     }
 
     @Test
-    void should_answer_404_when_the_login_id_is_unknown() throws Exception {
-        mvc.perform(post("/api/login").contentType(MediaType.APPLICATION_JSON).content("{\"userId\":\"nobody\"}"))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("NOT_FOUND"));
+    void should_answer_401_with_the_same_message_for_a_wrong_password_and_an_unknown_user() throws Exception {
+        mvc.perform(post("/api/login").contentType(MediaType.APPLICATION_JSON).content(login("M-1", "wrong-password")))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("INVALID_CREDENTIALS"))
+                .andExpect(jsonPath("$.message").value("Invalid user id or password"));
+        mvc.perform(post("/api/login").contentType(MediaType.APPLICATION_JSON).content(login("nobody", "whatever-1")))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("Invalid user id or password"));
     }
 
     @Test
-    void should_answer_401_when_the_user_header_is_missing() throws Exception {
+    void should_answer_401_when_the_authorization_header_is_missing() throws Exception {
         mvc.perform(get("/api/equipment")).andExpect(status().isUnauthorized());
     }
 
     @Test
+    void should_answer_401_when_the_token_is_not_a_real_one() throws Exception {
+        mvc.perform(get("/api/equipment").header("Authorization", "Bearer not-a-real-token"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("INVALID_CREDENTIALS"));
+        mvc.perform(get("/api/equipment").header("Authorization", "Basic abc"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void should_tell_who_is_signed_in() throws Exception {
+        mvc.perform(as("I-1", get("/api/me")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("I-1"))
+                .andExpect(jsonPath("$.role").value("Instructor"));
+    }
+
+    @Test
+    void should_stop_accepting_the_token_after_sign_out() throws Exception {
+        mvc.perform(as("M-1", post("/api/logout"))).andExpect(status().isNoContent());
+
+        mvc.perform(as("M-1", get("/api/me"))).andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void should_list_users_for_an_administrator_and_answer_403_for_a_member() throws Exception {
-        mvc.perform(as("A-1", get("/api/users"))).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(5)));
+        mvc.perform(as("A-1", get("/api/users"))).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(5)))
+                .andExpect(jsonPath("$[0].active").value(true));
         mvc.perform(as("M-1", get("/api/users")))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.error").value("UNAUTHORIZED_ACCESS"));
+    }
+
+    @Test
+    void should_let_an_administrator_register_a_user_who_can_then_sign_in() throws Exception {
+        mvc.perform(as("A-1", post("/api/users"))
+                        .content("{\"id\":\"M-9\",\"name\":\"Mia Perera\",\"role\":\"MEMBER\",\"password\":\"mia-secret-1\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value("M-9"))
+                .andExpect(jsonPath("$.role").value("Member"));
+
+        mvc.perform(post("/api/login").contentType(MediaType.APPLICATION_JSON).content(login("M-9", "mia-secret-1")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void should_answer_409_when_the_user_id_already_exists() throws Exception {
+        mvc.perform(as("A-1", post("/api/users"))
+                        .content("{\"id\":\"M-1\",\"name\":\"Copy\",\"role\":\"MEMBER\",\"password\":\"copy-secret-1\"}"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error").value("DUPLICATE"));
+    }
+
+    @Test
+    void should_answer_400_for_a_weak_password_or_an_unknown_role() throws Exception {
+        mvc.perform(as("A-1", post("/api/users"))
+                        .content("{\"id\":\"M-9\",\"name\":\"Mia\",\"role\":\"MEMBER\",\"password\":\"short\"}"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(as("A-1", post("/api/users"))
+                        .content("{\"id\":\"M-9\",\"name\":\"Mia\",\"role\":\"OWNER\",\"password\":\"mia-secret-1\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void should_answer_403_when_a_member_tries_to_register_a_user() throws Exception {
+        mvc.perform(as("M-1", post("/api/users"))
+                        .content("{\"id\":\"M-9\",\"name\":\"Mia\",\"role\":\"MEMBER\",\"password\":\"mia-secret-1\"}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void should_deactivate_a_user_who_can_then_no_longer_sign_in() throws Exception {
+        mvc.perform(as("A-1", post("/api/users/M-2/deactivate")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.active").value(false));
+
+        mvc.perform(post("/api/login").contentType(MediaType.APPLICATION_JSON)
+                        .content(login("M-2", IwfcBootstrap.DEMO_PASSWORD)))
+                .andExpect(status().isUnauthorized());
     }
 
     // ---- equipment ------------------------------------------------------------------------------
