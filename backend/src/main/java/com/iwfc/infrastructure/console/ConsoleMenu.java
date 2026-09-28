@@ -51,10 +51,10 @@ public class ConsoleMenu {
         view.banner();
         try {
             login();
+            view.menu(current);
             boolean running = true;
             while (running) {
-                view.menu(current);
-                running = handle(prompt("Choose an option"));
+                running = handle(prompt("Choose an option (m = menu, 0 = exit)"));
             }
         } catch (EndOfInput endOfInput) {
             out.println();
@@ -133,7 +133,9 @@ public class ConsoleMenu {
                 case "20" -> {
                     current = null;
                     login();
+                    view.menu(current);
                 }
+                case "m", "M", "menu", "?" -> view.menu(current);
                 default -> view.failure("Unknown option", choice);
             }
         } catch (EndOfInput endOfInput) {

@@ -22,7 +22,7 @@ cd backend
 mvn test
 
 # 1. console menu
-mvn -q compile exec:java -Dexec.mainClass=com.iwfc.Main
+mvn -q compile exec:java
 
 # 2. REST API on http://localhost:8080
 mvn spring-boot:run

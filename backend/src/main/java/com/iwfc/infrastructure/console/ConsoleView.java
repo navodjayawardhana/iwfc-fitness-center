@@ -93,7 +93,7 @@ public class ConsoleView {
             }
             boolean allowed = option.allowed().test(user);
             String hint = allowed || option.audience().isEmpty() ? "" : option.audience();
-            String line = String.format("  %3d  %-32s%s", option.number(), option.label(), hint);
+            String line = String.format("  %3d  %-32s%s", option.number(), option.label(), hint).stripTrailing();
             out.println(allowed ? line : paint(DIM, line));
         }
         out.println();
