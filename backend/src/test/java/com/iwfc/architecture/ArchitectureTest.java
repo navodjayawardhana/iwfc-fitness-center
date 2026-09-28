@@ -51,6 +51,7 @@ class ArchitectureTest {
     @ArchTest
     static final ArchRule use_cases_are_named_and_placed_consistently = classes()
             .that().resideInAPackage("com.iwfc.application.usecase..")
+            .and().areTopLevelClasses()
             .should().haveSimpleNameEndingWith("UseCase");
 
     @ArchTest

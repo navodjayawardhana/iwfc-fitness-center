@@ -6,6 +6,8 @@ public class Instructor extends User {
     public Instructor(String id, String name) { super(id, name); }
 
     @Override public String roleName() { return "Instructor"; }
+    @Override public Role role() { return Role.INSTRUCTOR; }
+    @Override public boolean canManageUsers() { return false; }
     @Override public boolean canManageEquipment() { return false; }
     @Override public boolean canManageMaintenance() { return false; }
     @Override public boolean canViewMaintenanceLog() { return false; }
