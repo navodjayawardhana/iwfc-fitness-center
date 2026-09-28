@@ -23,16 +23,16 @@ public class AccountController {
 
     @PostMapping("/api/login")
     UserResponse login(@RequestBody LoginRequest request) {
-        return UserResponse.from(system.login(request.userId()));
+        return UserResponse.from(system.findUser(request.userId()));
     }
 
     @GetMapping("/api/users")
     List<UserResponse> users(@RequestHeader("X-User-Id") String userId) {
-        return system.listUsers(system.login(userId)).stream().map(UserResponse::from).toList();
+        return system.listUsers(system.findUser(userId)).stream().map(UserResponse::from).toList();
     }
 
     @GetMapping("/api/notifications")
     List<String> notifications(@RequestHeader("X-User-Id") String userId) {
-        return system.inbox(system.login(userId));
+        return system.inbox(system.findUser(userId));
     }
 }

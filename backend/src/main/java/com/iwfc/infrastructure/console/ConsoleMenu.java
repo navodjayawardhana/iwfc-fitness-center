@@ -66,7 +66,7 @@ public class ConsoleMenu {
         view.info("Demo users: A-1 Administrator, I-1 / I-2 Instructor, M-1 / M-2 Member");
         while (current == null) {
             try {
-                current = system.login(prompt("User id"));
+                current = system.findUser(prompt("User id"));
                 view.welcome(current);
             } catch (ResourceNotFoundException notFound) {
                 view.failure("Not found", notFound.getMessage());

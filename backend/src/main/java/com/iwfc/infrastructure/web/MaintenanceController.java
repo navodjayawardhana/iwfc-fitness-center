@@ -33,27 +33,27 @@ public class MaintenanceController {
     @GetMapping("/api/maintenance")
     List<MaintenanceResponse> list(@RequestHeader("X-User-Id") String userId,
                                    @RequestParam(defaultValue = "false") boolean mine) {
-        User user = system.login(userId);
+        User user = system.findUser(userId);
         List<MaintenanceRequest> requests = mine ? system.myMaintenanceRequests(user) : system.maintenanceRequests(user);
         return requests.stream().map(MaintenanceResponse::from).toList();
     }
 
     @GetMapping("/api/maintenance/activity-log")
     List<String> activityLog(@RequestHeader("X-User-Id") String userId) {
-        return system.maintenanceActivityLog(system.login(userId));
+        return system.maintenanceActivityLog(system.findUser(userId));
     }
 
     @PostMapping("/api/maintenance")
     @ResponseStatus(HttpStatus.CREATED)
     MaintenanceResponse report(@RequestHeader("X-User-Id") String userId, @RequestBody FaultRequest request) {
-        return MaintenanceResponse.from(system.reportFault(system.login(userId), request.equipmentId(),
+        return MaintenanceResponse.from(system.reportFault(system.findUser(userId), request.equipmentId(),
                 request.description(), ApiDtos.enumOf(Urgency.class, request.urgency())));
     }
 
     @PostMapping("/api/maintenance/{id}/assign")
     MaintenanceResponse assign(@RequestHeader("X-User-Id") String userId, @PathVariable String id,
                                @RequestBody AssignRequest request) {
-        User admin = system.login(userId);
+        User admin = system.findUser(userId);
         system.assignMaintenance(admin, id, request.technician());
         return find(admin, id);
     }
@@ -61,14 +61,14 @@ public class MaintenanceController {
     @PostMapping("/api/maintenance/{id}/progress")
     MaintenanceResponse progress(@RequestHeader("X-User-Id") String userId, @PathVariable String id,
                                  @RequestBody ProgressRequest request) {
-        User admin = system.login(userId);
+        User admin = system.findUser(userId);
         system.updateMaintenanceProgress(admin, id, request.note());
         return find(admin, id);
     }
 
     @PostMapping("/api/maintenance/{id}/complete")
     MaintenanceResponse complete(@RequestHeader("X-User-Id") String userId, @PathVariable String id) {
-        User admin = system.login(userId);
+        User admin = system.findUser(userId);
         system.completeMaintenance(admin, id);
         return find(admin, id);
     }

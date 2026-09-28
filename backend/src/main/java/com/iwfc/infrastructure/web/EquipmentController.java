@@ -31,14 +31,14 @@ public class EquipmentController {
 
     @GetMapping("/api/equipment")
     List<EquipmentResponse> list(@RequestHeader("X-User-Id") String userId) {
-        system.login(userId);
+        system.findUser(userId);
         return system.listEquipment().stream().map(EquipmentResponse::from).toList();
     }
 
     @PostMapping("/api/equipment")
     @ResponseStatus(HttpStatus.CREATED)
     EquipmentResponse add(@RequestHeader("X-User-Id") String userId, @RequestBody EquipmentRequest request) {
-        User actor = system.login(userId);
+        User actor = system.findUser(userId);
         return EquipmentResponse.from(system.addEquipment(actor, ApiDtos.enumOf(EquipmentType.class, request.type()),
                 request.id(), request.name(), new Location(request.location())));
     }
@@ -46,20 +46,20 @@ public class EquipmentController {
     @PutMapping("/api/equipment/{id}")
     EquipmentResponse edit(@RequestHeader("X-User-Id") String userId, @PathVariable String id,
                            @RequestBody EquipmentEditRequest request) {
-        system.editEquipment(system.login(userId), id, request.name(), new Location(request.location()));
+        system.editEquipment(system.findUser(userId), id, request.name(), new Location(request.location()));
         return EquipmentResponse.from(system.findEquipment(id));
     }
 
     @PostMapping("/api/equipment/{id}/deactivate")
     EquipmentResponse deactivate(@RequestHeader("X-User-Id") String userId, @PathVariable String id) {
-        system.deactivateEquipment(system.login(userId), id);
+        system.deactivateEquipment(system.findUser(userId), id);
         return EquipmentResponse.from(system.findEquipment(id));
     }
 
     @PostMapping("/api/equipment/{id}/usage")
     EquipmentResponse logUsage(@RequestHeader("X-User-Id") String userId, @PathVariable String id,
                                @RequestBody UsageRequest request) {
-        system.logEquipmentUsage(system.login(userId), id, request.hours());
+        system.logEquipmentUsage(system.findUser(userId), id, request.hours());
         return EquipmentResponse.from(system.findEquipment(id));
     }
 }

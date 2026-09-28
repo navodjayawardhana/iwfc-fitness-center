@@ -45,7 +45,7 @@ public class IwfcFacade {
 
     // ---- accounts -------------------------------------------------------------------------------
 
-    public User login(String userId) {
+    public User findUser(String userId) {
         return users.findById(userId).orElseThrow(() -> new ResourceNotFoundException("user", userId));
     }
 

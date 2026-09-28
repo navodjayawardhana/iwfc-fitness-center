@@ -35,7 +35,7 @@ public class SessionController {
     @GetMapping("/api/sessions")
     List<SessionResponse> list(@RequestHeader("X-User-Id") String userId,
                                @RequestParam(defaultValue = "false") boolean all) {
-        system.login(userId);
+        system.findUser(userId);
         List<FitnessSession> sessions = all ? system.allSessions() : system.availableSessions();
         return sessions.stream().map(SessionResponse::from).toList();
     }
@@ -43,7 +43,7 @@ public class SessionController {
     @PostMapping("/api/sessions")
     @ResponseStatus(HttpStatus.CREATED)
     List<SessionResponse> schedule(@RequestHeader("X-User-Id") String userId, @RequestBody SessionRequest request) {
-        User instructor = system.login(userId);
+        User instructor = system.findUser(userId);
         LocalDate date = LocalDate.parse(request.date());
         TimeSlot slot = new TimeSlot(date.atTime(LocalTime.parse(request.start())),
                 date.atTime(LocalTime.parse(request.end())));
@@ -60,25 +60,25 @@ public class SessionController {
 
     @PostMapping("/api/sessions/{id}/bookings")
     SessionResponse book(@RequestHeader("X-User-Id") String userId, @PathVariable String id) {
-        system.bookSession(id, system.login(userId));
+        system.bookSession(id, system.findUser(userId));
         return SessionResponse.from(system.findSession(id));
     }
 
     @DeleteMapping("/api/sessions/{id}/bookings")
     SessionResponse cancelBooking(@RequestHeader("X-User-Id") String userId, @PathVariable String id) {
-        system.cancelBooking(id, system.login(userId));
+        system.cancelBooking(id, system.findUser(userId));
         return SessionResponse.from(system.findSession(id));
     }
 
     @DeleteMapping("/api/sessions/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void cancelSession(@RequestHeader("X-User-Id") String userId, @PathVariable String id) {
-        system.cancelSession(system.login(userId), id);
+        system.cancelSession(system.findUser(userId), id);
     }
 
     @PostMapping("/api/sessions/{id}/complete")
     SessionResponse complete(@RequestHeader("X-User-Id") String userId, @PathVariable String id) {
-        system.completeSession(system.login(userId), id);
+        system.completeSession(system.findUser(userId), id);
         return SessionResponse.from(system.findSession(id));
     }
 }
