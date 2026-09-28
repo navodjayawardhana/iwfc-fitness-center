@@ -1,16 +1,22 @@
-@startuml
-title FitPulse (IWFC) – class diagram (dependencies point inward)
+@startuml class-diagram
+title FitPulse – domain and application classes
+!pragma layout smetana
+skinparam shadowing false
+skinparam defaultFontName Arial
 skinparam classAttributeIconSize 0
 skinparam packageStyle rectangle
 
 package "domain" #E8F5E9 {
   abstract class User {
-    -id: String
-    -name: String
-    +{abstract} roleName(): String
-    +{abstract} canManageEquipment(): boolean
-    +{abstract} canBookSessions(): boolean
+    -id : String
+    -name : String
+    -active : boolean
+    +{abstract} role() : Role
+    +{abstract} canManageEquipment() : boolean
+    +{abstract} canBookSessions() : boolean
+    +{abstract} canManageUsers() : boolean
     +ensureCanManageEquipment()
+    +deactivate()
   }
   class Administrator
   class Instructor
@@ -20,49 +26,57 @@ package "domain" #E8F5E9 {
   User <|-- Member
 
   class Equipment <<aggregate root>> {
-    -id: String
-    -status: EquipmentStatus
-    -hoursSinceMaintenance: double
+    -status : EquipmentStatus
+    -hoursSinceMaintenance : double
     +logUsage(hours)
-    +needsMaintenance(): boolean
+    +needsMaintenance() : boolean
     +markFaulty()
     +startMaintenance()
     +completeMaintenance()
+    +{static} restore(...) : Equipment
   }
   class EquipmentFactory <<Factory>> {
-    +create(type, id, name, location): Equipment
+    +create(type, id, name, location)
+  }
+  class UserFactory <<Factory>> {
+    +{static} create(role, id, name)
   }
   class FitnessSession {
-    -capacity: int
+    -capacity : int
     +book(User)
     +cancel(User)
-    +conflictsWith(FitnessSession): boolean
-    +repeatedAfterWeeks(n): FitnessSession
+    +conflictsWith(FitnessSession) : boolean
+    +repeatedAfterWeeks(n)
   }
   class SessionSchedule <<aggregate root>> {
     +schedule(FitnessSession)
     +scheduleWeekly(FitnessSession, weeks)
+    +book(sessionId, User)
   }
   class MaintenanceRequest {
-    -status: RequestStatus
+    -status : RequestStatus
+    -urgency : Urgency
     +assignTo(User, technician)
+    +updateProgress(User, note)
     +complete(User)
-    +pullEvents(): List
+    +pullEvents() : List
   }
-  class TimeSlot <<record, value object>> {
-    +overlaps(TimeSlot): boolean
+  class TimeSlot <<record>> {
+    +overlaps(TimeSlot) : boolean
   }
-  class Location <<record, value object>>
+  class Location <<record>>
+  class Credential <<record>>
   class MaintenanceStatusChanged <<record, domain event>>
   interface "Repository<T, ID>" as Repository <<port>>
 
   EquipmentFactory ..> Equipment : creates
+  UserFactory ..> User : creates
   SessionSchedule "1" o-- "*" FitnessSession
+  SessionSchedule ..> Repository
   FitnessSession --> TimeSlot
   FitnessSession --> Location
   FitnessSession "*" --> "*" Equipment
   FitnessSession --> User : instructor, members
-  Equipment --> Location
   MaintenanceRequest --> User : reportedBy
   MaintenanceRequest ..> MaintenanceStatusChanged : records
 }
@@ -72,35 +86,51 @@ package "application" #E3F2FD {
   class EquipmentInventoryUseCase
   class BookSessionUseCase
   class MaintenanceUseCase
+  class AuthenticationUseCase
+  class UserAccountUseCase
+  class ReminderUseCase
+  interface PasswordHasher <<port>>
   class NotificationService <<Subject>> {
     +subscribe(MaintenanceObserver)
     +publish(MaintenanceStatusChanged)
+    +send(userId, message)
   }
   interface MaintenanceObserver <<Observer>>
   class ReporterNotifier
   class AdminMaintenanceLog
+  class AdminAlertNotifier
 
   IwfcFacade --> EquipmentInventoryUseCase
   IwfcFacade --> BookSessionUseCase
   IwfcFacade --> MaintenanceUseCase
+  IwfcFacade --> AuthenticationUseCase
+  IwfcFacade --> UserAccountUseCase
+  IwfcFacade --> ReminderUseCase
   MaintenanceUseCase --> NotificationService
   NotificationService o-- MaintenanceObserver
   MaintenanceObserver <|.. ReporterNotifier
   MaintenanceObserver <|.. AdminMaintenanceLog
+  MaintenanceObserver <|.. AdminAlertNotifier
+  AuthenticationUseCase ..> PasswordHasher
+  UserAccountUseCase ..> PasswordHasher
 }
 
 package "infrastructure" #FFF3E0 {
   class "InMemoryRepository<T, ID>" as InMemoryRepository
+  class "Jdbc*Repository (6)" as JdbcRepos
+  class Pbkdf2PasswordHasher
   class IwfcBootstrap <<composition root>>
   class ConsoleMenu
-  class "Spring Boot REST controllers" as Rest
+  class "REST controllers" as Rest
 }
 
 Repository <|.. InMemoryRepository
-EquipmentInventoryUseCase --> Repository
+Repository <|.. JdbcRepos
+PasswordHasher <|.. Pbkdf2PasswordHasher
+EquipmentInventoryUseCase ..> Repository
 BookSessionUseCase --> SessionSchedule
-MaintenanceUseCase --> Repository
-EquipmentInventoryUseCase --> EquipmentFactory
+MaintenanceUseCase ..> Repository
+BookSessionUseCase ..> EquipmentInventoryUseCase
 ConsoleMenu --> IwfcFacade
 Rest --> IwfcFacade
 IwfcBootstrap ..> IwfcFacade : wires

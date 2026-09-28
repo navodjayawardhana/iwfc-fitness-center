@@ -5,7 +5,7 @@ Slide 1 of the PowerPoint must carry the video link (YouTube or OneDrive). Speak
 | Time | Show | Say |
 |---|---|---|
 | 0:00–0:45 | Title slide, repo on GitHub | Who you are, the IWFC problem FitPulse solves, what the prototype does |
-| 0:45–2:15 | Layer diagram + `docs/class-diagram.puml` | DDD + Clean Architecture, dependency rule, three delivery mechanisms over one facade |
+| 0:45–2:15 | Layer diagram + `docs/diagrams/class-diagram.puml` | DDD + Clean Architecture, dependency rule, three delivery mechanisms over one facade |
 | 2:15–3:45 | `User` and its subclasses, `Equipment`, `FitnessSession` in the IDE | Abstraction, encapsulation, polymorphism; rich domain model; value objects |
 | 3:45–5:00 | `EquipmentFactory`, `IwfcFacade`, `NotificationService` | The three patterns: why each, what it replaced |
 | 5:00–5:45 | `Repository<T, ID>` + `InMemoryRepository` | Generics and collections |
