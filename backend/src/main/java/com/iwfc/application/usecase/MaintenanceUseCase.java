@@ -9,7 +9,6 @@ import com.iwfc.domain.model.User;
 import com.iwfc.domain.repository.Repository;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /** Orchestrates the maintenance workflow and publishes the domain events it produces. */
 public class MaintenanceUseCase {
@@ -17,7 +16,6 @@ public class MaintenanceUseCase {
     private final Repository<MaintenanceRequest, String> requests;
     private final Repository<Equipment, String> equipment;
     private final NotificationService notifications;
-    private final AtomicInteger sequence = new AtomicInteger();
 
     public MaintenanceUseCase(Repository<MaintenanceRequest, String> requests, Repository<Equipment, String> equipment,
                               NotificationService notifications) {
@@ -30,7 +28,7 @@ public class MaintenanceUseCase {
         reporter.ensureCanReportFaults();
         Equipment item = findEquipment(equipmentId);
         MaintenanceRequest request = new MaintenanceRequest(
-                String.format("MR-%03d", sequence.incrementAndGet()), equipmentId, description, urgency, reporter);
+                String.format("MR-%03d", requests.count() + 1), equipmentId, description, urgency, reporter);
         item.markFaulty();
         equipment.save(item);
         save(request);

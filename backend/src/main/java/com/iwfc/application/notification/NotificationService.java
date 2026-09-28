@@ -14,7 +14,15 @@ import java.util.Map;
 public class NotificationService {
 
     private final List<MaintenanceObserver> observers = new ArrayList<>();
-    private final Map<String, List<String>> inboxes = new HashMap<>();
+    private final NotificationStore store;
+
+    public NotificationService() {
+        this(new MemoryNotificationStore());
+    }
+
+    public NotificationService(NotificationStore store) {
+        this.store = store;
+    }
 
     public void subscribe(MaintenanceObserver observer) {
         if (!observers.contains(observer)) {
@@ -43,10 +51,26 @@ public class NotificationService {
         if (recipientId == null || recipientId.isBlank() || message == null || message.isBlank()) {
             throw new IllegalArgumentException("A notification needs a recipient and a message");
         }
-        inboxes.computeIfAbsent(recipientId, id -> new ArrayList<>()).add(message);
+        store.add(recipientId, message);
     }
 
     public List<String> inboxOf(String userId) {
-        return List.copyOf(inboxes.getOrDefault(userId, List.of()));
+        return List.copyOf(store.messagesFor(userId));
+    }
+
+    /** The default store: messages kept in memory. */
+    private static final class MemoryNotificationStore implements NotificationStore {
+
+        private final Map<String, List<String>> inboxes = new HashMap<>();
+
+        @Override
+        public void add(String userId, String message) {
+            inboxes.computeIfAbsent(userId, id -> new ArrayList<>()).add(message);
+        }
+
+        @Override
+        public List<String> messagesFor(String userId) {
+            return List.copyOf(inboxes.getOrDefault(userId, List.of()));
+        }
     }
 }
