@@ -31,6 +31,10 @@ class ConsoleMenuTest {
         return captured.toString(StandardCharsets.UTF_8);
     }
 
+    private static int occurrences(String text, String part) {
+        return text.split(java.util.regex.Pattern.quote(part), -1).length - 1;
+    }
+
     // Z
     @Test
     void should_say_goodbye_when_the_user_logs_in_and_exits_straight_away() {
@@ -95,7 +99,33 @@ class ConsoleMenuTest {
         assertTrue(output.contains("Scheduled 4 weekly sessions"));
     }
 
-    // B
+    // B - the menu is long, so it is shown once and then only on request
+    @Test
+    void should_show_the_menu_once_and_not_after_every_action() {
+        String output = run("M-1", "1", "6", "19", "0");
+
+        assertEquals(1, occurrences(output, "ACCOUNT"));
+    }
+
+    @Test
+    void should_show_the_menu_again_when_the_user_types_m() {
+        String output = run("M-1", "1", "m", "0");
+
+        assertEquals(2, occurrences(output, "ACCOUNT"));
+    }
+
+    @Test
+    void should_show_the_menu_for_the_new_role_after_switching_user() {
+        String output = run("M-1", "20", "A-1", "0");
+
+        assertEquals(2, occurrences(output, "ACCOUNT"));
+    }
+
+    @Test
+    void should_remind_the_user_how_to_get_the_menu_and_exit_in_the_prompt() {
+        assertTrue(run("M-1", "0").contains("m = menu"));
+    }
+
     @Test
     void should_report_an_unknown_menu_choice_without_crashing() {
         String output = run("M-1", "99", "abc", "0");
