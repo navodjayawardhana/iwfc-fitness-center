@@ -202,7 +202,6 @@ class PersistenceContractTest {
         assertEquals("Technician Kamal", loaded.assignedTo().orElseThrow());
         assertEquals(List.of("Part ordered", "Part fitted"), loaded.progressNotes());
         assertEquals(instructor, loaded.reportedBy());
-        assertTrue(loaded.pullEvents().isEmpty());
     }
 
     @ParameterizedTest

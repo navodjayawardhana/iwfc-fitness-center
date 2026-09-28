@@ -41,6 +41,29 @@ Seeded demo users: `A-1` Administrator, `I-1` and `I-2` Instructors, `M-1` and `
 - **How passwords are handled:** only a salted PBKDF2-HMAC-SHA256 hash (210,000 iterations) is stored, wrong id and wrong password give the same message, and the password is never printed or logged.
 - **Limits (prototype):** sessions and users are in memory, so a restart signs everyone out and resets data; no rate limiting or account lockout; HTTPS is needed in real use.
 
+## Storage: memory (default) or MySQL
+The same code runs on either. `FITPULSE_STORAGE` chooses:
+
+| Value | Effect |
+|---|---|
+| `memory` (default) | Sample data in memory, reset on every start. Used by tests and the quick demo |
+| `mysql` | Everything (users, password hashes, equipment, sessions, bookings, maintenance, notifications, log) is stored in MySQL and survives restarts |
+
+**One-time MySQL setup (for example WAMP):**
+1. Start MySQL (WAMP icon > MySQL service running).
+2. Edit `backend/db/init.sql`: put your own password where it says `CHANGE_ME` (do not commit that edit), then run it as a MySQL administrator (phpMyAdmin SQL tab, or `mysql -u root -p < backend/db/init.sql`).
+3. Set the password for the app (never put it in the code or in git):
+```powershell
+$env:FITPULSE_STORAGE = "mysql"
+$env:FITPULSE_DB_PASSWORD = "<the password you chose>"
+# optional: $env:FITPULSE_DB_URL, $env:FITPULSE_DB_USER  (defaults: jdbc:mysql://localhost:3306/fitpulse, user fitpulse)
+cd backend
+mvn spring-boot:run          # REST API   (or: mvn -q compile exec:java  for the console)
+```
+Tables are created on the first start and the demo users, equipment and sessions are added once, only when the database has no users. Passwords are stored only as salted PBKDF2 hashes.
+
+Automated tests cover the JDBC adapters without needing MySQL: the same contract test runs against the in-memory storage and against H2 in MySQL mode, and `DatabaseBootstrapTest` checks that data survives a restart.
+
 ## Architecture
 ```
 Console menu ─┐
@@ -54,7 +77,7 @@ Dependencies point inward only. `ArchitectureTest` (ArchUnit) fails the build if
 |---|---|---|
 | Domain | `com.iwfc.domain` | Entities, value objects, aggregate roots, custom exceptions, `Repository<T, ID>` port |
 | Application | `com.iwfc.application` | Use cases, `IwfcFacade`, Observer-based notifications |
-| Infrastructure | `com.iwfc.infrastructure` | In-memory repository, composition root, console menu, Spring Boot REST adapter |
+| Infrastructure | `com.iwfc.infrastructure` | In-memory and JDBC (MySQL) storage, composition root, console menu, Spring Boot REST adapter |
 
 ## Design patterns
 | Category | Pattern | Where |

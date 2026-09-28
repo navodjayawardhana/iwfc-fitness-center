@@ -13,7 +13,7 @@ public final class Main {
 
     public static void main(String[] args) {
         boolean terminal = isTerminal();
-        new ConsoleMenu(IwfcBootstrap.seededSecure(), System.in, System.out, terminal && supportsColour(), terminal).run();
+        new ConsoleMenu(IwfcBootstrap.configured(System.getenv()), System.in, System.out, terminal && supportsColour(), terminal).run();
     }
 
     private static boolean isTerminal() {

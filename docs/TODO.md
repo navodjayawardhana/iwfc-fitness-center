@@ -37,3 +37,9 @@
 - [ ] Record video, upload YouTube/OneDrive
 - [ ] Submit: Moodle/Turnitin PDF (before 2:00pm) + ICBT SIS Word version
 
+
+### Extra (completion plan)
+- [x] User accounts + login (PBKDF2, bearer tokens, console/REST/React)
+- [x] Member reminders + wellness tips + scheduler
+- [x] MySQL persistence (JDBC adapters, schema, contract tests on H2, restart survival)
+- [ ] Verify against a real MySQL server (WAMP): run init.sql, set FITPULSE_DB_PASSWORD, start with FITPULSE_STORAGE=mysql
