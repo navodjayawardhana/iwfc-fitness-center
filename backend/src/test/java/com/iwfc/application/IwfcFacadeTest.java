@@ -206,6 +206,17 @@ class IwfcFacadeTest {
         assertThrows(UnauthorizedAccessException.class, () -> system.sendReminders(system.findUser("M-1")));
     }
 
+    @Test
+    void should_find_one_maintenance_request_by_id_for_an_administrator_only() {
+        User admin = system.findUser("A-1");
+        MaintenanceRequest request = system.reportFault(system.findUser("I-1"), "SB-04", "Broken", Urgency.LOW);
+
+        assertEquals(request.id(), system.findMaintenanceRequest(admin, request.id()).id());
+        assertThrows(UnauthorizedAccessException.class,
+                () -> system.findMaintenanceRequest(system.findUser("M-1"), request.id()));
+        assertThrows(ResourceNotFoundException.class, () -> system.findMaintenanceRequest(admin, "MR-999"));
+    }
+
     // S
     @Test
     void should_schedule_a_recurring_weekly_class_through_the_facade() {

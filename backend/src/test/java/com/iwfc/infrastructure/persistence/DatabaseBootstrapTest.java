@@ -41,6 +41,15 @@ class DatabaseBootstrapTest {
         assertDoesNotThrow(() -> DatabaseSchema.create(database));
     }
 
+    @Test
+    void should_explain_when_the_tables_cannot_be_created() {
+        DataSource broken = new org.springframework.jdbc.datasource.DriverManagerDataSource("jdbc:no-such-driver:nothing");
+
+        IllegalStateException error = assertThrows(IllegalStateException.class, () -> DatabaseSchema.create(broken));
+
+        assertTrue(error.getMessage().contains("Could not create the database tables"));
+    }
+
     // O
     @Test
     void should_seed_sample_users_equipment_and_sessions_on_an_empty_database() {

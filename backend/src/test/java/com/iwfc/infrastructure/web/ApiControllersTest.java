@@ -279,6 +279,27 @@ class ApiControllersTest {
     }
 
     @Test
+    void should_let_an_instructor_cancel_a_session_and_stop_listing_it() throws Exception {
+        mvc.perform(as("I-2", delete("/api/sessions/S-2"))).andExpect(status().isNoContent());
+
+        mvc.perform(as("M-1", get("/api/sessions?all=true")))
+                .andExpect(jsonPath("$[?(@.id=='S-2')]").isEmpty());
+    }
+
+    @Test
+    void should_answer_403_when_a_member_cancels_a_session() throws Exception {
+        mvc.perform(as("M-1", delete("/api/sessions/S-1"))).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void should_log_the_equipment_usage_when_an_instructor_completes_a_session() throws Exception {
+        mvc.perform(as("I-1", post("/api/sessions/S-3/complete"))).andExpect(status().isOk());
+
+        mvc.perform(as("A-1", get("/api/equipment")))
+                .andExpect(jsonPath("$[?(@.id=='SB-01')].totalUsageHours").value(org.hamcrest.Matchers.contains(1.0)));
+    }
+
+    @Test
     void should_answer_404_for_an_unknown_session() throws Exception {
         mvc.perform(as("M-1", post("/api/sessions/nope/bookings"))).andExpect(status().isNotFound());
     }

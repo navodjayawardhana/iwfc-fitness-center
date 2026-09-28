@@ -17,7 +17,7 @@ docs/       plan, todo, class diagram (PlantUML), report outline, video script
 
 ## Run
 ```bash
-# backend: tests (237) + coverage report in backend/target/site/jacoco/index.html
+# backend: tests + coverage report in backend/target/site/jacoco/index.html ("mvn verify" also enforces >= 90% coverage)
 cd backend
 mvn test
 
