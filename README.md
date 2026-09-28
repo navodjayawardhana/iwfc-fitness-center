@@ -30,7 +30,8 @@ mvn spring-boot:run
 # 3. React UI on http://localhost:5173 (needs the API running)
 cd frontend
 npm install
-npm run dev          # npm run build = type-check (tsc) + production build
+npm run dev          # the app
+npm run check        # type-check (tsc) + ESLint + Vitest + production build; run this before committing
 ```
 
 ## Sign-in

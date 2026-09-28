@@ -16,10 +16,11 @@ export function useLoad<T>(loader: () => Promise<T>, deps: readonly unknown[], r
 
   useEffect(() => {
     let cancelled = false;
-    setFailed(null);
     loader()
       .then((result) => {
-        if (!cancelled) setData(result);
+        if (cancelled) return;
+        setData(result);
+        setFailed(null);
       })
       .catch((error: unknown) => {
         if (cancelled) return;
