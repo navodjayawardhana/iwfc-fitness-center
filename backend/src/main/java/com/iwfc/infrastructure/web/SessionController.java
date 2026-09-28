@@ -33,17 +33,17 @@ public class SessionController {
 
     /** Sessions with free spots by default; {@code ?all=true} includes full ones. */
     @GetMapping("/api/sessions")
-    List<SessionResponse> list(@RequestHeader("X-User-Id") String userId,
+    List<SessionResponse> list(@RequestHeader("Authorization") String authorization,
                                @RequestParam(defaultValue = "false") boolean all) {
-        system.findUser(userId);
+        ApiAuth.user(system, authorization);
         List<FitnessSession> sessions = all ? system.allSessions() : system.availableSessions();
         return sessions.stream().map(SessionResponse::from).toList();
     }
 
     @PostMapping("/api/sessions")
     @ResponseStatus(HttpStatus.CREATED)
-    List<SessionResponse> schedule(@RequestHeader("X-User-Id") String userId, @RequestBody SessionRequest request) {
-        User instructor = system.findUser(userId);
+    List<SessionResponse> schedule(@RequestHeader("Authorization") String authorization, @RequestBody SessionRequest request) {
+        User instructor = ApiAuth.user(system, authorization);
         LocalDate date = LocalDate.parse(request.date());
         TimeSlot slot = new TimeSlot(date.atTime(LocalTime.parse(request.start())),
                 date.atTime(LocalTime.parse(request.end())));
@@ -59,26 +59,26 @@ public class SessionController {
     }
 
     @PostMapping("/api/sessions/{id}/bookings")
-    SessionResponse book(@RequestHeader("X-User-Id") String userId, @PathVariable String id) {
-        system.bookSession(id, system.findUser(userId));
+    SessionResponse book(@RequestHeader("Authorization") String authorization, @PathVariable String id) {
+        system.bookSession(id, ApiAuth.user(system, authorization));
         return SessionResponse.from(system.findSession(id));
     }
 
     @DeleteMapping("/api/sessions/{id}/bookings")
-    SessionResponse cancelBooking(@RequestHeader("X-User-Id") String userId, @PathVariable String id) {
-        system.cancelBooking(id, system.findUser(userId));
+    SessionResponse cancelBooking(@RequestHeader("Authorization") String authorization, @PathVariable String id) {
+        system.cancelBooking(id, ApiAuth.user(system, authorization));
         return SessionResponse.from(system.findSession(id));
     }
 
     @DeleteMapping("/api/sessions/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    void cancelSession(@RequestHeader("X-User-Id") String userId, @PathVariable String id) {
-        system.cancelSession(system.findUser(userId), id);
+    void cancelSession(@RequestHeader("Authorization") String authorization, @PathVariable String id) {
+        system.cancelSession(ApiAuth.user(system, authorization), id);
     }
 
     @PostMapping("/api/sessions/{id}/complete")
-    SessionResponse complete(@RequestHeader("X-User-Id") String userId, @PathVariable String id) {
-        system.completeSession(system.findUser(userId), id);
+    SessionResponse complete(@RequestHeader("Authorization") String authorization, @PathVariable String id) {
+        system.completeSession(ApiAuth.user(system, authorization), id);
         return SessionResponse.from(system.findSession(id));
     }
 }

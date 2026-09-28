@@ -1,6 +1,8 @@
 package com.iwfc.infrastructure.web;
 
 import com.iwfc.domain.exception.DuplicateEquipmentException;
+import com.iwfc.domain.exception.DuplicateUserException;
+import com.iwfc.domain.exception.InvalidCredentialsException;
 import com.iwfc.domain.exception.InvalidBookingException;
 import com.iwfc.domain.exception.InvalidEquipmentOperationException;
 import com.iwfc.domain.exception.InvalidStatusTransitionException;
@@ -31,9 +33,14 @@ public class ApiExceptionHandler {
         return reply(HttpStatus.CONFLICT, "INVALID_BOOKING", error);
     }
 
-    @ExceptionHandler(DuplicateEquipmentException.class)
-    ResponseEntity<ErrorBody> duplicate(DuplicateEquipmentException error) {
+    @ExceptionHandler({DuplicateEquipmentException.class, DuplicateUserException.class})
+    ResponseEntity<ErrorBody> duplicate(RuntimeException error) {
         return reply(HttpStatus.CONFLICT, "DUPLICATE", error);
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    ResponseEntity<ErrorBody> invalidCredentials(InvalidCredentialsException error) {
+        return reply(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", error);
     }
 
     @ExceptionHandler(InvalidStatusTransitionException.class)
@@ -55,7 +62,9 @@ public class ApiExceptionHandler {
     @ExceptionHandler(MissingRequestHeaderException.class)
     ResponseEntity<ErrorBody> missingUser(MissingRequestHeaderException error) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(new ErrorBody("MISSING_USER", "Send the acting user in the " + error.getHeaderName() + " header"));
+                .body(new ErrorBody("MISSING_TOKEN",
+                        "Sign in at POST /api/login, then send the token in the " + error.getHeaderName()
+                                + " header as: Bearer <token>"));
     }
 
     private static ResponseEntity<ErrorBody> reply(HttpStatus status, String code, Exception error) {

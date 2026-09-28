@@ -1,5 +1,6 @@
 package com.iwfc.infrastructure.web;
 
+import com.iwfc.application.security.AuthSession;
 import com.iwfc.domain.model.Equipment;
 import com.iwfc.domain.model.FitnessSession;
 import com.iwfc.domain.model.MaintenanceRequest;
@@ -13,11 +14,19 @@ public final class ApiDtos {
     private ApiDtos() {
     }
 
-    public record LoginRequest(String userId) { }
+    public record LoginRequest(String userId, String password) { }
 
-    public record UserResponse(String id, String name, String role) {
+    public record LoginResponse(String token, String expiresAt, UserResponse user) {
+        static LoginResponse from(AuthSession session) {
+            return new LoginResponse(session.token(), session.expiresAt().toString(), UserResponse.from(session.user()));
+        }
+    }
+
+    public record CreateUserRequest(String id, String name, String role, String password) { }
+
+    public record UserResponse(String id, String name, String role, boolean active) {
         static UserResponse from(User user) {
-            return new UserResponse(user.id(), user.name(), user.roleName());
+            return new UserResponse(user.id(), user.name(), user.roleName(), user.isActive());
         }
     }
 
