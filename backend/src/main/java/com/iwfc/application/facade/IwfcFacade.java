@@ -175,6 +175,10 @@ public class IwfcFacade {
         return maintenance.allRequests(administrator);
     }
 
+    public MaintenanceRequest findMaintenanceRequest(User administrator, String requestId) {
+        return maintenance.find(administrator, requestId);
+    }
+
     public List<MaintenanceRequest> myMaintenanceRequests(User reporter) {
         return maintenance.requestsReportedBy(reporter);
     }

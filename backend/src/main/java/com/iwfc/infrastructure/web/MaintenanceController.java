@@ -74,10 +74,6 @@ public class MaintenanceController {
     }
 
     private MaintenanceResponse find(User admin, String id) {
-        return system.maintenanceRequests(admin).stream()
-                .filter(request -> request.id().equals(id))
-                .findFirst()
-                .map(MaintenanceResponse::from)
-                .orElseThrow();
+        return MaintenanceResponse.from(system.findMaintenanceRequest(admin, id));
     }
 }
