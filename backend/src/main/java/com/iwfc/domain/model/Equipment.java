@@ -32,6 +32,27 @@ public class Equipment {
         this.maintenanceThresholdHours = maintenanceThresholdHours;
     }
 
+    /**
+     * Rebuilds equipment from stored data (used by the database adapter). The basic rules still apply, but
+     * the status and usage are taken as they were saved instead of starting from a new, operational item.
+     */
+    public static Equipment restore(String id, String name, EquipmentType type, Location location,
+                                    double maintenanceThresholdHours, EquipmentStatus status, boolean active,
+                                    double totalUsageHours, double hoursSinceMaintenance) {
+        if (status == null) {
+            throw new InvalidEquipmentOperationException("Equipment status is required");
+        }
+        if (totalUsageHours < 0 || hoursSinceMaintenance < 0) {
+            throw new InvalidEquipmentOperationException("Usage hours cannot be negative");
+        }
+        Equipment restored = new Equipment(id, name, type, location, maintenanceThresholdHours);
+        restored.status = status;
+        restored.active = active;
+        restored.totalUsageHours = totalUsageHours;
+        restored.hoursSinceMaintenance = hoursSinceMaintenance;
+        return restored;
+    }
+
     public void logUsage(double hours) {
         if (hours <= 0) {
             throw new InvalidEquipmentOperationException("Usage hours must be greater than zero");

@@ -26,13 +26,39 @@ public class MaintenanceRequest {
     private final List<MaintenanceStatusChanged> events = new ArrayList<>();
 
     public MaintenanceRequest(String id, String equipmentId, String description, Urgency urgency, User reportedBy) {
+        this(id, equipmentId, description, urgency, reportedBy, true);
+        record(null);
+    }
+
+    private MaintenanceRequest(String id, String equipmentId, String description, Urgency urgency, User reportedBy,
+                               boolean checkReporter) {
         this.reportedBy = Objects.requireNonNull(reportedBy, "A request needs a reporter");
-        reportedBy.ensureCanReportFaults();
+        if (checkReporter) {
+            reportedBy.ensureCanReportFaults();
+        }
         this.id = requireText(id, "Request id");
         this.equipmentId = requireText(equipmentId, "Equipment id");
         this.description = requireText(description, "Description");
         this.urgency = Objects.requireNonNull(urgency, "Urgency is required");
-        record(null);
+    }
+
+    /**
+     * Rebuilds a request from stored data (used by the database adapter). No event is recorded, because
+     * nothing has changed: the report was announced when it was first made.
+     */
+    public static MaintenanceRequest restore(String id, String equipmentId, String description, Urgency urgency,
+                                             User reportedBy, RequestStatus status, String assignedTo,
+                                             List<String> progressNotes) {
+        Objects.requireNonNull(status, "Status is required");
+        boolean hasTechnician = assignedTo != null && !assignedTo.isBlank();
+        if ((status == RequestStatus.PENDING) == hasTechnician) {
+            throw new IllegalArgumentException("A request has a technician exactly when it is no longer pending");
+        }
+        MaintenanceRequest restored = new MaintenanceRequest(id, equipmentId, description, urgency, reportedBy, false);
+        restored.status = status;
+        restored.assignedTo = hasTechnician ? assignedTo.trim() : null;
+        restored.progressNotes.addAll(progressNotes);
+        return restored;
     }
 
     public void assignTo(User administrator, String technician) {

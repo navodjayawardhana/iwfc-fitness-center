@@ -6,6 +6,15 @@ public final class UserFactory {
     private UserFactory() {
     }
 
+    /** Rebuilds a stored account, keeping its deactivated state. */
+    public static User restore(Role role, String id, String name, boolean active) {
+        User user = create(role, id, name);
+        if (!active) {
+            user.deactivate();
+        }
+        return user;
+    }
+
     public static User create(Role role, String id, String name) {
         if (role == null) {
             throw new IllegalArgumentException("A role is required");

@@ -25,6 +25,11 @@ public class FitnessSession {
 
     public FitnessSession(String id, String title, User instructor, Location studio, TimeSlot slot,
                           int capacity, List<Equipment> equipment) {
+        this(id, title, instructor, studio, slot, capacity, equipment, true);
+    }
+
+    private FitnessSession(String id, String title, User instructor, Location studio, TimeSlot slot,
+                           int capacity, List<Equipment> equipment, boolean checkEquipmentAvailable) {
         this.instructor = Objects.requireNonNull(instructor, "A session needs an instructor");
         instructor.ensureCanScheduleSessions();
         if (id == null || id.isBlank() || title == null || title.isBlank()) {
@@ -40,10 +45,24 @@ public class FitnessSession {
         this.capacity = capacity;
         this.equipment = List.copyOf(equipment);
         for (Equipment item : this.equipment) {
-            if (!item.isAvailableForSessions()) {
+            if (checkEquipmentAvailable && !item.isAvailableForSessions()) {
                 throw new InvalidBookingException("Equipment " + item.id() + " is not available for sessions");
             }
         }
+    }
+
+    /**
+     * Rebuilds a session from stored data (used by the database adapter). Equipment that has become faulty since
+     * the session was scheduled is accepted, but the stored bookings must still fit the capacity.
+     */
+    public static FitnessSession restore(String id, String title, User instructor, Location studio, TimeSlot slot,
+                                         int capacity, List<Equipment> equipment, List<User> bookedMembers) {
+        FitnessSession restored = new FitnessSession(id, title, instructor, studio, slot, capacity, equipment, false);
+        if (bookedMembers.size() > capacity) {
+            throw new InvalidBookingException("Stored bookings exceed the capacity of " + restored.title);
+        }
+        restored.bookedMembers.addAll(bookedMembers);
+        return restored;
     }
 
     public void book(User member) {
