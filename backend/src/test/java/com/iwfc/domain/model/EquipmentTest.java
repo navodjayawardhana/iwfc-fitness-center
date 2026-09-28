@@ -154,6 +154,46 @@ class EquipmentTest {
         assertThrows(InvalidEquipmentOperationException.class, () -> new Location(" "));
     }
 
+    // I - rebuilding stored equipment (used by the database adapter)
+    @Test
+    void should_restore_every_stored_field_exactly() {
+        Equipment restored = Equipment.restore("TM-07", "Treadmill 07", EquipmentType.TREADMILL,
+                new Location("Studio A"), 100, EquipmentStatus.FAULTY, true, 250.5, 40.25);
+
+        assertEquals("TM-07", restored.id());
+        assertEquals("Treadmill 07", restored.name());
+        assertEquals(new Location("Studio A"), restored.location());
+        assertEquals(EquipmentStatus.FAULTY, restored.status());
+        assertEquals(250.5, restored.totalUsageHours());
+        assertEquals(40.25, restored.hoursSinceMaintenance());
+        assertTrue(restored.isActive());
+    }
+
+    @Test
+    void should_keep_a_stored_deactivated_state_and_carry_on_from_a_stored_status() {
+        Equipment gone = Equipment.restore("TM-08", "Old", EquipmentType.TREADMILL, new Location("Cardio Zone"),
+                100, EquipmentStatus.OPERATIONAL, false, 10, 10);
+        Equipment underRepair = Equipment.restore("TM-09", "Repair", EquipmentType.TREADMILL,
+                new Location("Cardio Zone"), 100, EquipmentStatus.UNDER_MAINTENANCE, true, 10, 90);
+
+        assertFalse(gone.isActive());
+        underRepair.completeMaintenance();
+        assertEquals(EquipmentStatus.OPERATIONAL, underRepair.status());
+        assertEquals(0, underRepair.hoursSinceMaintenance());
+    }
+
+    @Test
+    void should_still_refuse_stored_data_that_breaks_the_basic_rules() {
+        Location zone = new Location("Cardio Zone");
+
+        assertThrows(InvalidEquipmentOperationException.class, () -> Equipment.restore(" ", "Name",
+                EquipmentType.TREADMILL, zone, 100, EquipmentStatus.OPERATIONAL, true, 0, 0));
+        assertThrows(InvalidEquipmentOperationException.class, () -> Equipment.restore("TM-1", "Name",
+                EquipmentType.TREADMILL, zone, 100, EquipmentStatus.OPERATIONAL, true, -1, 0));
+        assertThrows(InvalidEquipmentOperationException.class, () -> Equipment.restore("TM-1", "Name",
+                EquipmentType.TREADMILL, zone, 100, null, true, 0, 0));
+    }
+
     // E - Exceptions: status transitions must follow Operational -> Faulty -> Under Maintenance -> Operational
     @Test
     void should_reject_starting_maintenance_when_equipment_is_operational_and_not_due() {

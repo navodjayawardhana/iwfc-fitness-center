@@ -158,6 +158,37 @@ class MaintenanceRequestTest {
                 () -> new MaintenanceRequest("MR-3", null, "Broken", Urgency.LOW, instructor));
     }
 
+    // I - rebuilding a stored request (used by the database adapter)
+    @Test
+    void should_restore_the_stored_workflow_state_without_announcing_a_new_report() {
+        MaintenanceRequest restored = MaintenanceRequest.restore("MR-5", "SB-04", "Resistance failure", Urgency.HIGH,
+                instructor, RequestStatus.ASSIGNED, "Technician Kamal", List.of("Part ordered"));
+
+        assertEquals(RequestStatus.ASSIGNED, restored.status());
+        assertEquals("Technician Kamal", restored.assignedTo().orElseThrow());
+        assertEquals(List.of("Part ordered"), restored.progressNotes());
+        assertTrue(restored.pullEvents().isEmpty());
+    }
+
+    @Test
+    void should_carry_on_the_workflow_from_a_restored_state() {
+        MaintenanceRequest restored = MaintenanceRequest.restore("MR-5", "SB-04", "Broken", Urgency.LOW,
+                instructor, RequestStatus.ASSIGNED, "Kamal", List.of());
+
+        restored.complete(admin);
+
+        assertEquals(RequestStatus.COMPLETED, restored.status());
+        assertEquals(1, restored.pullEvents().size());
+    }
+
+    @Test
+    void should_refuse_a_stored_pending_request_that_already_has_a_technician() {
+        assertThrows(IllegalArgumentException.class, () -> MaintenanceRequest.restore("MR-6", "SB-04", "Broken",
+                Urgency.LOW, instructor, RequestStatus.PENDING, "Kamal", List.of()));
+        assertThrows(IllegalArgumentException.class, () -> MaintenanceRequest.restore("MR-6", "SB-04", "Broken",
+                Urgency.LOW, instructor, RequestStatus.ASSIGNED, null, List.of()));
+    }
+
     // S - full happy path
     @Test
     void should_complete_the_whole_workflow_when_every_step_is_allowed() {

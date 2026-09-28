@@ -54,6 +54,17 @@ class UserFactoryTest {
         assertThrows(IllegalArgumentException.class, () -> UserFactory.create(Role.MEMBER, "M-9", null));
     }
 
+    // I - rebuilding a stored account keeps the deactivated state
+    @Test
+    void should_restore_an_account_with_its_stored_active_flag() {
+        User active = UserFactory.restore(Role.MEMBER, "M-1", "Supun", true);
+        User gone = UserFactory.restore(Role.INSTRUCTOR, "I-1", "Nushfa", false);
+
+        assertTrue(active.isActive());
+        assertFalse(gone.isActive());
+        assertInstanceOf(Instructor.class, gone);
+    }
+
     // S
     @Test
     void should_give_the_role_back_as_the_same_display_name_as_the_subclass() {
