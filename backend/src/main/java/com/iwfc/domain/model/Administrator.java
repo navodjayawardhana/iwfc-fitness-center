@@ -6,6 +6,8 @@ public class Administrator extends User {
     public Administrator(String id, String name) { super(id, name); }
 
     @Override public String roleName() { return "Administrator"; }
+    @Override public Role role() { return Role.ADMINISTRATOR; }
+    @Override public boolean canManageUsers() { return true; }
     @Override public boolean canManageEquipment() { return true; }
     @Override public boolean canManageMaintenance() { return true; }
     @Override public boolean canViewMaintenanceLog() { return true; }

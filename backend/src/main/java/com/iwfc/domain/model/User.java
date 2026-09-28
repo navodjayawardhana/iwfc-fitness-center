@@ -11,6 +11,7 @@ public abstract class User {
 
     private final String id;
     private final String name;
+    private boolean active = true;
 
     protected User(String id, String name) {
         if (id == null || id.isBlank()) {
@@ -25,6 +26,9 @@ public abstract class User {
 
     public abstract String roleName();
 
+    public abstract Role role();
+
+    public abstract boolean canManageUsers();
     public abstract boolean canManageEquipment();
     public abstract boolean canManageMaintenance();
     public abstract boolean canViewMaintenanceLog();
@@ -33,6 +37,7 @@ public abstract class User {
     public abstract boolean canLogEquipmentUsage();
     public abstract boolean canBookSessions();
 
+    public void ensureCanManageUsers() { require(canManageUsers(), "manage user accounts"); }
     public void ensureCanManageEquipment() { require(canManageEquipment(), "manage equipment"); }
     public void ensureCanManageMaintenance() { require(canManageMaintenance(), "manage maintenance requests"); }
     public void ensureCanViewMaintenanceLog() { require(canViewMaintenanceLog(), "view the maintenance log"); }
@@ -46,6 +51,11 @@ public abstract class User {
             throw new UnauthorizedAccessException(roleName() + " " + name + " is not allowed to " + action);
         }
     }
+
+    public boolean isActive() { return active; }
+
+    /** Switches the account off. History stays; the user can no longer sign in. */
+    public void deactivate() { this.active = false; }
 
     public String id() { return id; }
     public String name() { return name; }

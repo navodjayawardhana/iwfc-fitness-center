@@ -6,6 +6,8 @@ public class Member extends User {
     public Member(String id, String name) { super(id, name); }
 
     @Override public String roleName() { return "Member"; }
+    @Override public Role role() { return Role.MEMBER; }
+    @Override public boolean canManageUsers() { return false; }
     @Override public boolean canManageEquipment() { return false; }
     @Override public boolean canManageMaintenance() { return false; }
     @Override public boolean canViewMaintenanceLog() { return false; }

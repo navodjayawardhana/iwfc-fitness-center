@@ -93,6 +93,30 @@ class UserTest {
         assertThrows(UnauthorizedAccessException.class, admin::ensureCanBookSessions);
     }
 
+    // B - account management is an administrator-only permission, and accounts can be switched off
+    @Test
+    void should_only_let_administrators_manage_users() {
+        assertTrue(admin.canManageUsers());
+        assertFalse(instructor.canManageUsers());
+        assertFalse(member.canManageUsers());
+    }
+
+    @Test
+    void should_throw_unauthorized_when_a_member_tries_to_manage_users() {
+        assertThrows(UnauthorizedAccessException.class, member::ensureCanManageUsers);
+        assertDoesNotThrow(admin::ensureCanManageUsers);
+    }
+
+    @Test
+    void should_be_active_until_it_is_deactivated() {
+        User someone = new Member("M-7", "Sam");
+        assertTrue(someone.isActive());
+
+        someone.deactivate();
+
+        assertFalse(someone.isActive());
+    }
+
     // S
     @Test
     void should_not_throw_when_user_holds_the_permission() {
