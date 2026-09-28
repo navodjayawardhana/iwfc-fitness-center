@@ -9,6 +9,7 @@ import com.iwfc.domain.model.Member;
 import com.iwfc.domain.model.SessionSchedule;
 import com.iwfc.domain.model.TimeSlot;
 import com.iwfc.support.MutableClock;
+import com.iwfc.infrastructure.persistence.InMemoryRepository;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -27,7 +28,7 @@ class ReminderUseCaseTest {
     private static final Instant SUNDAY_8AM = Instant.parse("2026-10-04T08:00:00Z");
     private static final LocalDateTime MONDAY_9AM = LocalDateTime.of(2026, 10, 5, 9, 0);
 
-    private final SessionSchedule schedule = new SessionSchedule(LocalTime.of(6, 0), LocalTime.of(22, 0));
+    private final SessionSchedule schedule = new SessionSchedule(LocalTime.of(6, 0), LocalTime.of(22, 0), new InMemoryRepository<>(FitnessSession::id));
     private final NotificationService notifications = new NotificationService();
     private final MutableClock clock = new MutableClock(SUNDAY_8AM);
     private final ReminderUseCase reminders = new ReminderUseCase(schedule, notifications, clock);

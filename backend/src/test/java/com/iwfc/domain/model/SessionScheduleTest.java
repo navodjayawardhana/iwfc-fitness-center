@@ -2,7 +2,10 @@ package com.iwfc.domain.model;
 
 import com.iwfc.domain.exception.InvalidBookingException;
 import com.iwfc.domain.exception.UnauthorizedAccessException;
+import com.iwfc.infrastructure.persistence.InMemoryRepository;
 import org.junit.jupiter.api.Test;
+
+import com.iwfc.support.CopyingSessionRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -17,7 +20,7 @@ class SessionScheduleTest {
 
     private static final LocalDate MONDAY = LocalDate.of(2026, 10, 5);
 
-    private final SessionSchedule schedule = new SessionSchedule(LocalTime.of(6, 0), LocalTime.of(22, 0));
+    private final SessionSchedule schedule = new SessionSchedule(LocalTime.of(6, 0), LocalTime.of(22, 0), new InMemoryRepository<>(FitnessSession::id));
     private final EquipmentFactory factory = new EquipmentFactory();
     private final Instructor instructor = new Instructor("I-1", "Nushfa");
     private final Location studioA = new Location("Studio A");
@@ -162,7 +165,82 @@ class SessionScheduleTest {
     @Test
     void should_reject_operating_hours_when_closing_is_not_after_opening() {
         assertThrows(InvalidBookingException.class,
-                () -> new SessionSchedule(LocalTime.of(22, 0), LocalTime.of(6, 0)));
+                () -> new SessionSchedule(LocalTime.of(22, 0), LocalTime.of(6, 0), new InMemoryRepository<>(FitnessSession::id)));
+    }
+
+    // Persistence: the schedule works over a repository, and a database only keeps what was saved
+    private SessionSchedule databaseBackedSchedule(CopyingSessionRepository database) {
+        return new SessionSchedule(LocalTime.of(6, 0), LocalTime.of(22, 0), database);
+    }
+
+    @Test
+    void should_save_a_session_when_it_is_scheduled() {
+        CopyingSessionRepository database = new CopyingSessionRepository();
+
+        databaseBackedSchedule(database).schedule(session("S-1", instructor, studioA, slot(9, 10)));
+
+        assertTrue(database.existsById("S-1"));
+    }
+
+    @Test
+    void should_save_a_booking_so_it_is_still_there_when_the_session_is_loaded_again() {
+        CopyingSessionRepository database = new CopyingSessionRepository();
+        SessionSchedule schedule = databaseBackedSchedule(database);
+        schedule.schedule(session("S-1", instructor, studioA, slot(9, 10)));
+
+        schedule.book("S-1", new Member("M-1", "Supun"));
+
+        assertEquals(1, database.findById("S-1").orElseThrow().bookedCount());
+    }
+
+    @Test
+    void should_save_a_cancelled_booking() {
+        CopyingSessionRepository database = new CopyingSessionRepository();
+        SessionSchedule schedule = databaseBackedSchedule(database);
+        Member member = new Member("M-1", "Supun");
+        schedule.schedule(session("S-1", instructor, studioA, slot(9, 10)));
+        schedule.book("S-1", member);
+
+        schedule.cancelBooking("S-1", member);
+
+        assertEquals(0, database.findById("S-1").orElseThrow().bookedCount());
+    }
+
+    @Test
+    void should_remove_a_cancelled_session_from_the_database() {
+        CopyingSessionRepository database = new CopyingSessionRepository();
+        SessionSchedule schedule = databaseBackedSchedule(database);
+        schedule.schedule(session("S-1", instructor, studioA, slot(9, 10)));
+
+        schedule.cancelSession("S-1");
+
+        assertFalse(database.existsById("S-1"));
+    }
+
+    @Test
+    void should_save_every_session_of_a_weekly_class() {
+        CopyingSessionRepository database = new CopyingSessionRepository();
+
+        databaseBackedSchedule(database).scheduleWeekly(session("PIL", instructor, studioA, slot(7, 8)), 3);
+
+        assertEquals(3, database.count());
+    }
+
+    @Test
+    void should_see_sessions_that_were_already_stored_when_it_starts() {
+        CopyingSessionRepository database = new CopyingSessionRepository();
+        databaseBackedSchedule(database).schedule(session("S-1", instructor, studioA, slot(9, 10)));
+
+        SessionSchedule restarted = databaseBackedSchedule(database);
+
+        assertEquals(1, restarted.allSessions().size());
+        assertThrows(InvalidBookingException.class,
+                () -> restarted.schedule(session("S-2", new Instructor("I-2", "Other"), studioA, slot(9, 10))));
+    }
+
+    @Test
+    void should_reject_cancelling_a_booking_for_an_unknown_session() {
+        assertThrows(InvalidBookingException.class, () -> schedule.cancelBooking("nope", new Member("M-1", "Supun")));
     }
 
     // S - Simple (recurring weekly classes)

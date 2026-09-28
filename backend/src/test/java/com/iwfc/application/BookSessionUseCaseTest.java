@@ -18,6 +18,7 @@ import com.iwfc.domain.model.SessionSchedule;
 import com.iwfc.domain.model.TimeSlot;
 import com.iwfc.domain.repository.Repository;
 import com.iwfc.infrastructure.persistence.InMemoryRepository;
+import com.iwfc.support.CopyingSessionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +37,7 @@ class BookSessionUseCaseTest {
     private final EquipmentInventoryUseCase inventory =
             new EquipmentInventoryUseCase(equipment, new EquipmentFactory(), notifications);
     private final BookSessionUseCase sessions = new BookSessionUseCase(
-            new SessionSchedule(LocalTime.of(6, 0), LocalTime.of(22, 0)), equipment, inventory, notifications);
+            new SessionSchedule(LocalTime.of(6, 0), LocalTime.of(22, 0), new InMemoryRepository<>(FitnessSession::id)), equipment, inventory, notifications);
     private final Administrator admin = new Administrator("A-1", "Prasad");
     private final Instructor instructor = new Instructor("I-1", "Nushfa");
     private final Instructor otherInstructor = new Instructor("I-2", "Kamal");
@@ -191,6 +192,20 @@ class BookSessionUseCaseTest {
                 () -> sessions.schedule(otherInstructor, "S-2", "HIIT", studioA, slot(9, 10), 10, List.of()));
 
         assertEquals(1, sessions.availableSessions().size());
+    }
+
+    @Test
+    void should_keep_bookings_when_the_session_store_returns_copies_like_a_database() {
+        BookSessionUseCase databaseBacked = new BookSessionUseCase(
+                new SessionSchedule(LocalTime.of(6, 0), LocalTime.of(22, 0), new CopyingSessionRepository()),
+                equipment, inventory, notifications);
+        databaseBacked.schedule(instructor, "S-1", "Yoga", studioA, slot(9, 10), 10, List.of());
+
+        databaseBacked.book("S-1", member);
+        assertEquals(1, databaseBacked.find("S-1").bookedCount());
+
+        databaseBacked.cancelBooking("S-1", member);
+        assertEquals(0, databaseBacked.find("S-1").bookedCount());
     }
 
     // S
