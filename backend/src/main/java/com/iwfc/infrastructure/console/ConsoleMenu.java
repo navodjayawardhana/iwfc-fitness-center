@@ -1,13 +1,17 @@
 package com.iwfc.infrastructure.console;
 
 import com.iwfc.application.facade.IwfcFacade;
+import com.iwfc.application.security.AuthSession;
 import com.iwfc.domain.exception.DuplicateEquipmentException;
+import com.iwfc.domain.exception.DuplicateUserException;
+import com.iwfc.domain.exception.InvalidCredentialsException;
 import com.iwfc.domain.exception.InvalidBookingException;
 import com.iwfc.domain.exception.ResourceNotFoundException;
 import com.iwfc.domain.exception.UnauthorizedAccessException;
 import com.iwfc.domain.model.Equipment;
 import com.iwfc.domain.model.EquipmentType;
 import com.iwfc.domain.model.Location;
+import com.iwfc.domain.model.Role;
 import com.iwfc.domain.model.TimeSlot;
 import com.iwfc.domain.model.Urgency;
 import com.iwfc.domain.model.User;
@@ -34,14 +38,22 @@ public class ConsoleMenu {
     private final BufferedReader in;
     private final PrintStream out;
     private final ConsoleView view;
+    private final boolean maskPasswords;
     private User current;
+    private String token;
 
     public ConsoleMenu(IwfcFacade system, InputStream in, PrintStream out) {
         this(system, in, out, false);
     }
 
     public ConsoleMenu(IwfcFacade system, InputStream in, PrintStream out, boolean colour) {
+        this(system, in, out, colour, false);
+    }
+
+    /** With maskPasswords set, typing is hidden on a real terminal; tests and piped input read a plain line. */
+    public ConsoleMenu(IwfcFacade system, InputStream in, PrintStream out, boolean colour, boolean maskPasswords) {
         this.system = system;
+        this.maskPasswords = maskPasswords;
         this.in = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
         this.out = out;
         this.view = new ConsoleView(out, colour);
@@ -59,17 +71,30 @@ public class ConsoleMenu {
         } catch (EndOfInput endOfInput) {
             out.println();
         }
+        signOut();
         view.info("Goodbye.");
+    }
+
+    private void signOut() {
+        if (token != null) {
+            system.signOut(token);
+            token = null;
+        }
+        current = null;
     }
 
     private void login() {
         view.info("Demo users: A-1 Administrator, I-1 / I-2 Instructor, M-1 / M-2 Member");
         while (current == null) {
+            String userId = prompt("User id");
+            String password = promptSecret("Password");
             try {
-                current = system.findUser(prompt("User id"));
+                AuthSession session = system.signIn(userId, password);
+                current = session.user();
+                token = session.token();
                 view.welcome(current);
-            } catch (ResourceNotFoundException notFound) {
-                view.failure("Not found", notFound.getMessage());
+            } catch (InvalidCredentialsException failed) {
+                view.failure("Sign-in failed", failed.getMessage());
             }
         }
     }
@@ -131,9 +156,18 @@ public class ConsoleMenu {
                     view.numbered(system.inbox(current), "No notifications yet.");
                 }
                 case "20" -> {
-                    current = null;
+                    signOut();
                     login();
                     view.menu(current);
+                }
+                case "21" -> {
+                    view.heading("User accounts");
+                    view.userTable(system.listUsers(current));
+                }
+                case "22" -> registerUser();
+                case "23" -> {
+                    system.deactivateUser(current, prompt("User id to deactivate"));
+                    view.success("User deactivated. They can no longer sign in.");
                 }
                 case "m", "M", "menu", "?" -> view.menu(current);
                 default -> view.failure("Unknown option", choice);
@@ -144,7 +178,7 @@ public class ConsoleMenu {
             view.failure("Access denied", error.getMessage());
         } catch (InvalidBookingException error) {
             view.failure("Invalid booking", error.getMessage());
-        } catch (DuplicateEquipmentException error) {
+        } catch (DuplicateEquipmentException | DuplicateUserException error) {
             view.failure("Duplicate", error.getMessage());
         } catch (ResourceNotFoundException error) {
             view.failure("Not found", error.getMessage());
@@ -183,6 +217,15 @@ public class ConsoleMenu {
         Location location = new Location(prompt("Location"));
         Equipment added = system.addEquipment(current, type, id, name, location);
         view.success("Added " + added);
+    }
+
+    private void registerUser() {
+        String id = prompt("New user id");
+        String name = prompt("Full name");
+        Role role = Role.parse(prompt("Role " + Arrays.toString(Role.values())));
+        String password = promptSecret("Password (at least 8 characters)");
+        User created = system.registerUser(current, role, id, name, password);
+        view.success("Registered " + created);
     }
 
     private void editEquipment() {
@@ -241,6 +284,21 @@ public class ConsoleMenu {
         } catch (IOException error) {
             throw new UncheckedIOException(error);
         }
+    }
+
+    /** Reads a password without echoing it when a real terminal is attached; otherwise reads a plain line. */
+    private String promptSecret(String label) {
+        java.io.Console console = System.console();
+        if (maskPasswords && console != null) {
+            char[] typed = console.readPassword(" > %s: ", label);
+            if (typed == null) {
+                throw new EndOfInput();
+            }
+            String password = new String(typed);
+            Arrays.fill(typed, ' ');
+            return password;
+        }
+        return prompt(label);
     }
 
     /** Signals that there is no more input, so the menu can stop cleanly. */

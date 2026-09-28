@@ -105,21 +105,21 @@ class ConsoleMenuTest {
     void should_show_the_menu_once_and_not_after_every_action() {
         String output = run("M-1", PW, "1", "6", "19", "0");
 
-        assertEquals(1, occurrences(output, "ACCOUNT"));
+        assertEquals(1, occurrences(output, "EQUIPMENT"));
     }
 
     @Test
     void should_show_the_menu_again_when_the_user_types_m() {
         String output = run("M-1", PW, "1", "m", "0");
 
-        assertEquals(2, occurrences(output, "ACCOUNT"));
+        assertEquals(2, occurrences(output, "EQUIPMENT"));
     }
 
     @Test
     void should_show_the_menu_for_the_new_role_after_switching_user() {
         String output = run("M-1", PW, "20", "A-1", PW, "0");
 
-        assertEquals(2, occurrences(output, "ACCOUNT"));
+        assertEquals(2, occurrences(output, "EQUIPMENT"));
     }
 
     @Test
