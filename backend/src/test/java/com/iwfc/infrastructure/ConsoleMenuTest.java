@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class ConsoleMenuTest {
 
+    private static final String PW = IwfcBootstrap.DEMO_PASSWORD;
     private static final LocalDate NEXT_MONDAY = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY));
 
     private static String run(String... lines) {
@@ -38,7 +39,7 @@ class ConsoleMenuTest {
     // Z
     @Test
     void should_say_goodbye_when_the_user_logs_in_and_exits_straight_away() {
-        String output = run("M-1", "0");
+        String output = run("M-1", PW, "0");
 
         assertTrue(output.contains("Welcome"));
         assertTrue(output.contains("Dilani Jayasinghe"));
@@ -47,26 +48,26 @@ class ConsoleMenuTest {
 
     @Test
     void should_stop_quietly_when_the_input_ends() {
-        assertDoesNotThrow(() -> run("M-1"));
+        assertDoesNotThrow(() -> run("M-1", PW));
     }
 
     @Test
     void should_show_the_app_banner_first() {
-        assertTrue(run("M-1", "0").contains("FitPulse"));
+        assertTrue(run("M-1", PW, "0").contains("FitPulse"));
     }
 
     // O
     @Test
     void should_ask_again_when_the_login_id_is_unknown() {
-        String output = run("nobody", "M-1", "0");
+        String output = run("nobody", PW, "M-1", PW, "0");
 
-        assertTrue(output.contains("No user found with id nobody"));
+        assertTrue(output.contains("Invalid user id or password"));
         assertTrue(output.contains("Dilani Jayasinghe"));
     }
 
     @Test
     void should_show_the_sectioned_menu_for_the_logged_in_role() {
-        String output = run("A-1", "0");
+        String output = run("A-1", PW, "0");
 
         assertTrue(output.contains("Administrator"));
         assertTrue(output.contains("EQUIPMENT"));
@@ -76,7 +77,7 @@ class ConsoleMenuTest {
     // M
     @Test
     void should_list_equipment_and_available_sessions_as_tables() {
-        String output = run("M-1", "1", "6", "0");
+        String output = run("M-1", PW, "1", "6", "0");
 
         assertTrue(output.contains("TM-01"));
         assertTrue(output.contains("Morning Yoga"));
@@ -85,7 +86,7 @@ class ConsoleMenuTest {
 
     @Test
     void should_let_a_member_book_a_session_and_read_the_notification() {
-        String output = run("M-1", "9", "S-1", "19", "0");
+        String output = run("M-1", PW, "9", "S-1", "19", "0");
 
         assertTrue(output.contains("Booked"));
         assertTrue(output.contains("Booked: Morning Yoga"));
@@ -93,7 +94,7 @@ class ConsoleMenuTest {
 
     @Test
     void should_schedule_a_weekly_class() {
-        String output = run("I-1", "8", "W-1", "Pilates", "Studio B", NEXT_MONDAY.toString(), "07:00", "08:00",
+        String output = run("I-1", PW, "8", "W-1", "Pilates", "Studio B", NEXT_MONDAY.toString(), "07:00", "08:00",
                 "10", "", "4", "0");
 
         assertTrue(output.contains("Scheduled 4 weekly sessions"));
@@ -102,33 +103,33 @@ class ConsoleMenuTest {
     // B - the menu is long, so it is shown once and then only on request
     @Test
     void should_show_the_menu_once_and_not_after_every_action() {
-        String output = run("M-1", "1", "6", "19", "0");
+        String output = run("M-1", PW, "1", "6", "19", "0");
 
         assertEquals(1, occurrences(output, "ACCOUNT"));
     }
 
     @Test
     void should_show_the_menu_again_when_the_user_types_m() {
-        String output = run("M-1", "1", "m", "0");
+        String output = run("M-1", PW, "1", "m", "0");
 
         assertEquals(2, occurrences(output, "ACCOUNT"));
     }
 
     @Test
     void should_show_the_menu_for_the_new_role_after_switching_user() {
-        String output = run("M-1", "20", "A-1", "0");
+        String output = run("M-1", PW, "20", "A-1", PW, "0");
 
         assertEquals(2, occurrences(output, "ACCOUNT"));
     }
 
     @Test
     void should_remind_the_user_how_to_get_the_menu_and_exit_in_the_prompt() {
-        assertTrue(run("M-1", "0").contains("m = menu"));
+        assertTrue(run("M-1", PW, "0").contains("m = menu"));
     }
 
     @Test
     void should_report_an_unknown_menu_choice_without_crashing() {
-        String output = run("M-1", "99", "abc", "0");
+        String output = run("M-1", PW, "99", "abc", "0");
 
         assertTrue(output.contains("Unknown option"));
         assertTrue(output.contains("Goodbye"));
@@ -138,9 +139,9 @@ class ConsoleMenuTest {
     @Test
     void should_carry_a_fault_from_report_to_completion_across_users() {
         String output = run(
-                "I-1", "13", "SB-04", "Resistance failure", "HIGH", "20",
-                "A-1", "15", "MR-001", "Technician Kamal", "16", "MR-001", "Part fitted", "17", "MR-001", "14", "20",
-                "I-1", "19", "0");
+                "I-1", PW, "13", "SB-04", "Resistance failure", "HIGH", "20",
+                "A-1", PW, "15", "MR-001", "Technician Kamal", "16", "MR-001", "Part fitted", "17", "MR-001", "14", "20",
+                "I-1", PW, "19", "0");
 
         assertTrue(output.contains("MR-001"));
         assertTrue(output.contains("ASSIGNED"));
@@ -149,7 +150,7 @@ class ConsoleMenuTest {
 
     @Test
     void should_let_an_instructor_see_their_own_requests_instead_of_being_denied() {
-        String output = run("I-1", "13", "SB-04", "Belt noise", "LOW", "14", "0");
+        String output = run("I-1", PW, "13", "SB-04", "Belt noise", "LOW", "14", "0");
 
         assertTrue(output.contains("MR-001"));
         assertFalse(output.contains("Access denied"));
@@ -157,14 +158,14 @@ class ConsoleMenuTest {
 
     @Test
     void should_show_the_activity_log_to_an_administrator() {
-        String output = run("I-1", "13", "SB-04", "Belt noise", "LOW", "20", "A-1", "18", "0");
+        String output = run("I-1", PW, "13", "SB-04", "Belt noise", "LOW", "20", "A-1", PW, "18", "0");
 
         assertTrue(output.contains("reported"));
     }
 
     @Test
     void should_edit_equipment() {
-        String output = run("A-1", "3", "TM-01", "Treadmill Pro", "Studio A", "1", "0");
+        String output = run("A-1", PW, "3", "TM-01", "Treadmill Pro", "Studio A", "1", "0");
 
         assertTrue(output.contains("Treadmill Pro"));
         assertTrue(output.contains("Studio A"));
@@ -172,7 +173,7 @@ class ConsoleMenuTest {
 
     @Test
     void should_cancel_a_session_and_stop_listing_it() {
-        String output = run("I-2", "11", "S-2", "6", "0");
+        String output = run("I-2", PW, "11", "S-2", "6", "0");
 
         assertTrue(output.contains("Session cancelled"));
         assertFalse(output.contains("HIIT Blast"));
@@ -180,15 +181,56 @@ class ConsoleMenuTest {
 
     @Test
     void should_log_equipment_usage_when_a_session_is_completed() {
-        String output = run("I-1", "12", "S-3", "20", "A-1", "1", "0");
+        String output = run("I-1", PW, "12", "S-3", "20", "A-1", PW, "1", "0");
 
         assertTrue(output.contains("1.0 / 120"));
+    }
+
+    // I - sign-in and user accounts
+    @Test
+    void should_ask_for_the_password_again_after_a_wrong_one_without_saying_which_part_was_wrong() {
+        String output = run("M-1", "bad-password", "M-1", PW, "0");
+
+        assertTrue(output.contains("Invalid user id or password"));
+        assertTrue(output.contains("Welcome, Dilani Jayasinghe"));
+    }
+
+    @Test
+    void should_never_print_the_password_back() {
+        String output = run("M-1", PW, "0");
+
+        assertFalse(output.contains(PW));
+    }
+
+    @Test
+    void should_list_users_for_an_administrator() {
+        String output = run("A-1", PW, "21", "0");
+
+        assertTrue(output.contains("Dilani Jayasinghe"));
+        assertTrue(output.contains("ACTIVE"));
+    }
+
+    @Test
+    void should_register_a_user_who_can_then_sign_in() {
+        String output = run("A-1", PW, "22", "M-9", "Mia Perera", "MEMBER", "mia-secret-1", "20",
+                "M-9", "mia-secret-1", "0");
+
+        assertTrue(output.contains("Registered"));
+        assertTrue(output.contains("Welcome, Mia Perera"));
+    }
+
+    @Test
+    void should_stop_a_deactivated_user_from_signing_in() {
+        String output = run("A-1", PW, "23", "M-2", "20", "M-2", PW, "M-1", PW, "0");
+
+        assertTrue(output.contains("Invalid user id or password"));
+        assertTrue(output.contains("Welcome, Dilani Jayasinghe"));
     }
 
     // E - the mandatory exceptions handled at the edge, in plain words
     @Test
     void should_deny_a_member_who_opens_the_maintenance_log() {
-        String output = run("M-1", "14", "0");
+        String output = run("M-1", PW, "14", "0");
 
         assertTrue(output.contains("Access denied"));
         assertTrue(output.contains("Member"));
@@ -196,7 +238,7 @@ class ConsoleMenuTest {
 
     @Test
     void should_reject_duplicate_equipment_ids() {
-        String output = run("A-1", "2", "TREADMILL", "TM-01", "Another treadmill", "Cardio Zone", "0");
+        String output = run("A-1", PW, "2", "TREADMILL", "TM-01", "Another treadmill", "Cardio Zone", "0");
 
         assertTrue(output.contains("Duplicate"));
         assertTrue(output.contains("TM-01"));
@@ -204,30 +246,53 @@ class ConsoleMenuTest {
 
     @Test
     void should_reject_a_double_booked_studio() {
-        String output = run("I-2", "7", "S-9", "Clash", "Studio A", NEXT_MONDAY.toString(), "09:00", "10:00", "10", "", "0");
+        String output = run("I-2", PW, "7", "S-9", "Clash", "Studio A", NEXT_MONDAY.toString(), "09:00", "10:00", "10", "", "0");
 
         assertTrue(output.contains("Invalid booking"));
     }
 
     @Test
     void should_reject_a_session_outside_operating_hours() {
-        String output = run("I-1", "7", "S-9", "Night", "Studio B", NEXT_MONDAY.toString(), "01:00", "02:00", "10", "", "0");
+        String output = run("I-1", PW, "7", "S-9", "Night", "Studio B", NEXT_MONDAY.toString(), "01:00", "02:00", "10", "", "0");
 
         assertTrue(output.contains("Invalid booking"));
     }
 
     @Test
     void should_explain_bad_numbers_and_dates_instead_of_crashing() {
-        String output = run("I-1", "5", "TM-01", "lots", "7", "S-9", "T", "Studio B", "not-a-date", "0");
+        String output = run("I-1", PW, "5", "TM-01", "lots", "7", "S-9", "T", "Studio B", "not-a-date", "0");
 
         assertTrue(output.contains("Invalid input"));
         assertTrue(output.contains("Goodbye"));
     }
 
+    @Test
+    void should_deny_a_member_who_opens_the_user_list() {
+        String output = run("M-1", PW, "21", "0");
+
+        assertTrue(output.contains("Access denied"));
+    }
+
+    @Test
+    void should_reject_a_duplicate_user_id() {
+        String output = run("A-1", PW, "22", "M-1", "Copy", "MEMBER", "copy-secret-1", "0");
+
+        assertTrue(output.contains("Duplicate"));
+        assertTrue(output.contains("M-1"));
+    }
+
+    @Test
+    void should_explain_a_weak_password_and_refuse_to_deactivate_yourself() {
+        String output = run("A-1", PW, "22", "M-9", "Mia", "MEMBER", "short", "23", "A-1", "0");
+
+        assertTrue(output.contains("at least 8"));
+        assertTrue(output.contains("own account"));
+    }
+
     // S
     @Test
     void should_schedule_a_new_session_when_the_details_are_valid() {
-        String output = run("I-1", "7", "S-9", "Core Strength", "Studio B", NEXT_MONDAY.toString(), "14:00", "15:00",
+        String output = run("I-1", PW, "7", "S-9", "Core Strength", "Studio B", NEXT_MONDAY.toString(), "14:00", "15:00",
                 "10", "", "6", "0");
 
         assertTrue(output.contains("Scheduled"));
@@ -236,7 +301,7 @@ class ConsoleMenuTest {
 
     @Test
     void should_switch_user_without_leaving_the_program() {
-        String output = run("M-1", "20", "A-1", "0");
+        String output = run("M-1", PW, "20", "A-1", PW, "0");
 
         assertTrue(output.contains("Dilani Jayasinghe"));
         assertTrue(output.contains("Amal Perera"));
