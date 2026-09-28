@@ -14,5 +14,6 @@ public class Administrator extends User {
     @Override public boolean canScheduleSessions() { return false; }
     @Override public boolean canReportFaults() { return false; }
     @Override public boolean canLogEquipmentUsage() { return false; }
+    @Override public boolean canSendReminders() { return true; }
     @Override public boolean canBookSessions() { return false; }
 }

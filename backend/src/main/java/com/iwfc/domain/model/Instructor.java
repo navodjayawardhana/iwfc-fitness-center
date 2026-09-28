@@ -14,5 +14,6 @@ public class Instructor extends User {
     @Override public boolean canScheduleSessions() { return true; }
     @Override public boolean canReportFaults() { return true; }
     @Override public boolean canLogEquipmentUsage() { return true; }
+    @Override public boolean canSendReminders() { return true; }
     @Override public boolean canBookSessions() { return false; }
 }

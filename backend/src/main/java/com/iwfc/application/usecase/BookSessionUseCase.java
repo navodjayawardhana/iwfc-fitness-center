@@ -1,6 +1,7 @@
 package com.iwfc.application.usecase;
 
 import com.iwfc.application.notification.NotificationService;
+import com.iwfc.application.notification.WellnessTips;
 import com.iwfc.domain.exception.ResourceNotFoundException;
 import com.iwfc.domain.model.Equipment;
 import com.iwfc.domain.model.FitnessSession;
@@ -59,7 +60,8 @@ public class BookSessionUseCase {
         FitnessSession session = find(sessionId);
         session.book(member);
         notifications.send(member.id(),
-                "Booked: " + session.title() + " on " + session.slot().start() + " in " + session.studio().name());
+                "Booked: " + session.title() + " on " + session.slot().start() + " in " + session.studio().name()
+                        + ". Tip: " + WellnessTips.tip(session.bookedCount()));
     }
 
     public void cancelBooking(String sessionId, User member) {

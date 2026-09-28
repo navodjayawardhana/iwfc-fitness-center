@@ -165,6 +165,7 @@ public class ConsoleMenu {
                     view.userTable(system.listUsers(current));
                 }
                 case "22" -> registerUser();
+                case "24" -> view.success("Reminders sent: " + system.sendReminders(current));
                 case "23" -> {
                     system.deactivateUser(current, prompt("User id to deactivate"));
                     view.success("User deactivated. They can no longer sign in.");

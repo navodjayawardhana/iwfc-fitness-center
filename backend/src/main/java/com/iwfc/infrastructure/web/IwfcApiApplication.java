@@ -5,6 +5,7 @@ import com.iwfc.infrastructure.IwfcBootstrap;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -13,6 +14,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * {@link IwfcFacade} that the console uses is exposed as a bean, so nothing inside it knows about Spring.
  */
 @SpringBootApplication
+@EnableScheduling
 public class IwfcApiApplication {
 
     public static void main(String[] args) {

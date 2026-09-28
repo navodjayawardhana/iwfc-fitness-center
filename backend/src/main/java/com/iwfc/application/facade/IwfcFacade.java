@@ -7,6 +7,7 @@ import com.iwfc.application.usecase.AuthenticationUseCase;
 import com.iwfc.application.usecase.BookSessionUseCase;
 import com.iwfc.application.usecase.EquipmentInventoryUseCase;
 import com.iwfc.application.usecase.MaintenanceUseCase;
+import com.iwfc.application.usecase.ReminderUseCase;
 import com.iwfc.application.usecase.UserAccountUseCase;
 import com.iwfc.domain.exception.ResourceNotFoundException;
 import com.iwfc.domain.model.Equipment;
@@ -37,11 +38,12 @@ public class IwfcFacade {
     private final Repository<User, String> users;
     private final AuthenticationUseCase authentication;
     private final UserAccountUseCase accounts;
+    private final ReminderUseCase reminders;
 
     public IwfcFacade(EquipmentInventoryUseCase inventory, BookSessionUseCase sessions, MaintenanceUseCase maintenance,
                       NotificationService notifications, AdminMaintenanceLog activityLog,
                       Repository<User, String> users, AuthenticationUseCase authentication,
-                      UserAccountUseCase accounts) {
+                      UserAccountUseCase accounts, ReminderUseCase reminders) {
         this.inventory = inventory;
         this.sessions = sessions;
         this.maintenance = maintenance;
@@ -50,6 +52,7 @@ public class IwfcFacade {
         this.users = users;
         this.authentication = authentication;
         this.accounts = accounts;
+        this.reminders = reminders;
     }
 
     // ---- accounts -------------------------------------------------------------------------------
@@ -180,6 +183,19 @@ public class IwfcFacade {
     public List<String> maintenanceActivityLog(User administrator) {
         administrator.ensureCanViewMaintenanceLog();
         return activityLog.entries();
+    }
+
+    // ---- reminders ------------------------------------------------------------------------------
+
+    /** Staff can trigger a reminder round by hand; the scheduler runs the same round automatically. */
+    public int sendReminders(User actor) {
+        actor.ensureCanSendReminders();
+        return reminders.sendDueReminders();
+    }
+
+    /** The automatic round, called by a timer rather than by a person. */
+    public int sendDueReminders() {
+        return reminders.sendDueReminders();
     }
 
     // ---- notifications --------------------------------------------------------------------------

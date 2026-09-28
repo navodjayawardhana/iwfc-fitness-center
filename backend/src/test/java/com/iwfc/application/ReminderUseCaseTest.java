@@ -75,7 +75,7 @@ class ReminderUseCaseTest {
     @Test
     void should_remind_every_booked_member_of_every_session_in_the_window() {
         FitnessSession yoga = session("S-1", "Morning Yoga", MONDAY_9AM, "Studio A");
-        FitnessSession hiit = session("S-2", "HIIT Blast", MONDAY_9AM.plusHours(2), "Studio B");
+        FitnessSession hiit = session("S-2", "HIIT Blast", MONDAY_9AM.minusHours(1), "Studio B");
         yoga.book(supun);
         yoga.book(navod);
         hiit.book(supun);
