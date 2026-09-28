@@ -47,6 +47,44 @@ class StorageConfigurationTest {
         assertEquals("gymuser", settings.user());
     }
 
+    // I - a local development MySQL (such as WAMP) often has root with no password
+    @Test
+    void should_allow_an_empty_password_only_when_it_is_switched_on_explicitly() {
+        DbSettings settings = DataSources.settings(Map.of("FITPULSE_DB_USER", "root", "FITPULSE_DB_NO_PASSWORD", "true"));
+
+        assertEquals("root", settings.user());
+        assertEquals("", settings.password());
+    }
+
+    @Test
+    void should_ignore_the_no_password_switch_unless_it_is_exactly_true() {
+        for (String value : new String[] {"false", "yes", "1", ""}) {
+            assertThrows(IllegalStateException.class,
+                    () -> DataSources.settings(Map.of("FITPULSE_DB_NO_PASSWORD", value)), value);
+        }
+    }
+
+    @Test
+    void should_prefer_a_real_password_when_both_are_given() {
+        DbSettings settings = DataSources.settings(Map.of("FITPULSE_DB_PASSWORD", "secret", "FITPULSE_DB_NO_PASSWORD", "true"));
+
+        assertEquals("secret", settings.password());
+    }
+
+    @Test
+    void should_create_the_database_on_first_connect_so_no_manual_setup_is_needed() {
+        DbSettings settings = DataSources.settings(Map.of("FITPULSE_DB_PASSWORD", "secret"));
+
+        assertTrue(settings.url().contains("createDatabaseIfNotExist=true"));
+    }
+
+    @Test
+    void should_mention_the_no_password_switch_in_the_error_for_a_missing_password() {
+        IllegalStateException error = assertThrows(IllegalStateException.class, () -> DataSources.settings(Map.of()));
+
+        assertTrue(error.getMessage().contains("FITPULSE_DB_NO_PASSWORD"));
+    }
+
     // B
     @Test
     void should_not_reveal_the_password_when_settings_are_printed() {
