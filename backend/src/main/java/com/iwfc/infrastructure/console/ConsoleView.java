@@ -55,7 +55,10 @@ public class ConsoleView {
             new Option(17, "MAINTENANCE", "Complete a maintenance request", "Administrator only", User::canManageMaintenance),
             new Option(18, "MAINTENANCE", "View maintenance activity log", "Administrator only", User::canViewMaintenanceLog),
             new Option(19, "ACCOUNT", "My notifications", "", user -> true),
-            new Option(20, "ACCOUNT", "Switch user", "", user -> true));
+            new Option(20, "ACCOUNT", "Sign out / switch user", "", user -> true),
+            new Option(21, "USER ACCOUNTS", "List users", "Administrator only", User::canManageUsers),
+            new Option(22, "USER ACCOUNTS", "Add a user", "Administrator only", User::canManageUsers),
+            new Option(23, "USER ACCOUNTS", "Deactivate a user", "Administrator only", User::canManageUsers));
 
     private final PrintStream out;
     private final boolean colour;
@@ -154,6 +157,14 @@ public class ConsoleView {
                     session.bookedCount() + "/" + session.capacity()));
         }
         table(List.of("ID", "Title", "When", "Studio", "Instructor", "Booked"), rows);
+    }
+
+    public void userTable(List<User> users) {
+        List<List<String>> rows = new ArrayList<>();
+        for (User user : users) {
+            rows.add(List.of(user.id(), user.name(), user.roleName(), user.isActive() ? "ACTIVE" : "DEACTIVATED"));
+        }
+        table(List.of("ID", "Name", "Role", "Status"), rows);
     }
 
     public void requestTable(List<MaintenanceRequest> requests) {

@@ -12,12 +12,17 @@ public final class Main {
     }
 
     public static void main(String[] args) {
-        new ConsoleMenu(IwfcBootstrap.seededSecure(), System.in, System.out, supportsColour()).run();
+        boolean terminal = isTerminal();
+        new ConsoleMenu(IwfcBootstrap.seededSecure(), System.in, System.out, terminal && supportsColour(), terminal).run();
+    }
+
+    private static boolean isTerminal() {
+        Console console = System.console();
+        return console != null && console.isTerminal();
     }
 
     /** Colours only when a real terminal is attached and the user has not opted out (NO_COLOR). */
     private static boolean supportsColour() {
-        Console console = System.console();
-        return console != null && console.isTerminal() && System.getenv("NO_COLOR") == null;
+        return System.getenv("NO_COLOR") == null;
     }
 }
