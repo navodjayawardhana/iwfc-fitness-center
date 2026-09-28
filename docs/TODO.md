@@ -1,4 +1,4 @@
-# IWFC – TODO
+# FitPulse (IWFC) – TODO
 
 ### Setup
 - [x] Install JDK 25 LTS, set JAVA_HOME, verify `java -version`
@@ -20,7 +20,7 @@
 - [x] Repository interfaces (domain) + generic InMemoryRepository<T,ID>
 - [x] BookSessionUseCase, ReportFaultUseCase, AssignMaintenanceUseCase
 - [x] Observer notifications on maintenance status change
-- [x] IWFCFacade (Structural pattern)
+- [x] IwfcFacade (Structural pattern)
 - [x] Access policy (role checks, via User polymorphism)
 - [x] Use case integration tests (in-memory repos)
 ### Delivery

@@ -74,9 +74,12 @@ export default function App() {
   return (
     <div className="mx-auto max-w-5xl px-4 pb-12">
       <header className="flex flex-wrap items-center justify-between gap-3 pt-5 pb-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-wide">FitPulse</h1>
-          <p className={muted}>Intelligent Wellness and Fitness Center</p>
+        <div className="flex items-center gap-3">
+          <img src="/logo.svg" alt="" className="h-10 w-10" />
+          <div>
+            <h1 className="text-2xl font-bold tracking-wide">FitPulse</h1>
+            <p className={muted}>Intelligent Wellness and Fitness Center</p>
+          </div>
         </div>
         <div className="flex items-center gap-3 text-sm">
           <span>
