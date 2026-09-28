@@ -12,7 +12,7 @@ Built with **DDD + Clean Architecture + TDD**. The domain is plain Java. The con
 ```
 backend/    Java 25 + Maven: domain, application, infrastructure (console + Spring Boot REST API)
 frontend/   Vite + React + TypeScript + Tailwind CSS UI
-docs/       plan, todo, class diagram (PlantUML), report outline, video script
+docs/       plan, todo, evidence pack, diagrams (PlantUML sources + PNG), report outline, video script
 ```
 
 ## Run

@@ -30,7 +30,7 @@
 - [x] Spring Boot REST API + ApiExceptionHandler
 - [x] React (Vite + TypeScript + Tailwind) UI: equipment, booking, maintenance, role switcher
 ### Report & Video
-- [x] Class diagram + layer diagram (PlantUML) – docs/class-diagram.puml
+- [x] Class diagram + layer diagram (PlantUML) – docs/diagrams/class-diagram.puml
 - [ ] Report 3000 words: rationale, patterns, ZOMBIES test table, bugs fixed, limitations, Harvard refs
 - [ ] Format check: A4, Arial/TNR 12, margins, cover + feedback sheet, PDF, `stXXXXXXXX_CMP7001_PRAC1`
 - [ ] PowerPoint (video link on slide 1) + 10-min video script

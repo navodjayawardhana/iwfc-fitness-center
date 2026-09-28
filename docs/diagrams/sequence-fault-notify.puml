@@ -1,0 +1,42 @@
+@startuml sequence-fault-notify
+title Report a fault, assign it, and notify (Observer pattern)
+skinparam shadowing false
+skinparam defaultFontName Arial
+autonumber
+
+actor Instructor
+actor Administrator
+participant "IwfcFacade" as Facade
+participant "MaintenanceUseCase" as UseCase
+participant "Equipment" as Equipment
+participant "MaintenanceRequest" as Request
+participant "NotificationService\n(subject)" as Notifications
+participant "ReporterNotifier\n(observer)" as Reporter
+participant "AdminMaintenanceLog\n(observer)" as Log
+
+Instructor -> Facade : reportFault(SB-04, "Resistance failure", HIGH)
+Facade -> UseCase : report(...)
+UseCase -> Request : new MaintenanceRequest(...)\n(checks the reporter may report faults)
+Request --> UseCase : status PENDING + event recorded
+UseCase -> Equipment : markFaulty()  (OPERATIONAL -> FAULTY)
+UseCase -> Notifications : publish(MaintenanceStatusChanged)
+Notifications -> Reporter : onStatusChanged(event)
+Reporter -> Notifications : send(instructor, "MR-001 is now PENDING")
+Notifications -> Log : onStatusChanged(event)
+Log --> Log : append("Request MR-001 reported ...")
+
+Administrator -> Facade : assignMaintenance(MR-001, "Kamal")
+Facade -> UseCase : assign(...)
+UseCase -> Request : assignTo(admin, "Kamal")\n(PENDING -> ASSIGNED)
+UseCase -> Equipment : startMaintenance()\n(FAULTY -> UNDER_MAINTENANCE)
+UseCase -> Notifications : publish(event)
+Notifications -> Reporter : the instructor is told: now ASSIGNED
+Notifications -> Log : log entry added
+
+note over Request
+  A member, or an instructor trying to assign,
+  gets UnauthorizedAccessException.
+  Completing a request that is still PENDING
+  gets InvalidStatusTransitionException.
+end note
+@enduml

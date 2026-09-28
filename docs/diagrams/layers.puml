@@ -1,0 +1,56 @@
+@startuml layers
+title FitPulse – layers (dependencies point inward)
+!pragma layout smetana
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam rectangle {
+  RoundCorner 10
+  BorderColor #475569
+}
+
+rectangle "Infrastructure  (delivery and storage adapters)" as infra #FFF3E0 {
+  rectangle "Console menu\n(ConsoleMenu + ConsoleView)" as console
+  rectangle "REST API\n(Spring Boot controllers)" as rest
+  rectangle "React UI\n(TypeScript + Tailwind)" as react
+  rectangle "IwfcBootstrap\n(composition root)" as boot
+  rectangle "Storage adapters\nInMemoryRepository  |  JDBC repositories" as storage
+  rectangle "Pbkdf2PasswordHasher" as hasher
+}
+
+rectangle "Application" as app #E3F2FD {
+  rectangle "IwfcFacade\n(Facade pattern)" as facade
+  rectangle "Use cases\nInventory | Booking | Maintenance\nAuthentication | UserAccount | Reminder" as usecases
+  rectangle "Notifications\nNotificationService + observers\n(Observer pattern)" as notif
+  rectangle "Ports\nPasswordHasher | NotificationStore | ActivityLogStore" as appports
+}
+
+rectangle "Domain  (pure Java, no framework imports)" as domain #E8F5E9 {
+  rectangle "Entities and aggregates\nUser (Administrator, Instructor, Member)\nEquipment | FitnessSession | SessionSchedule\nMaintenanceRequest" as entities
+  rectangle "Value objects and events\nTimeSlot | Location | Credential\nMaintenanceStatusChanged" as values
+  rectangle "Factories\nEquipmentFactory | UserFactory" as factories
+  rectangle "Custom exceptions" as exceptions
+  rectangle "Port: Repository<T, ID>" as repoport
+}
+
+react --> rest : HTTP + JSON\n(Bearer token)
+console --> facade
+rest --> facade
+boot ..> facade : builds
+facade --> usecases
+usecases --> notif
+usecases --> entities
+usecases ..> repoport
+usecases ..> appports
+notif ..> appports
+entities --> values
+entities ..> exceptions
+storage ..|> repoport : implements
+storage ..|> appports : implements
+hasher ..|> appports : implements
+
+note bottom of domain
+  ArchUnit tests fail the build if the domain
+  depends on the application layer, infrastructure,
+  Spring, JDBC or any other framework.
+end note
+@enduml

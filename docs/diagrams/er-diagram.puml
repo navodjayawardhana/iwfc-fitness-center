@@ -1,0 +1,98 @@
+@startuml er-diagram
+title FitPulse – MySQL schema (backend/src/main/resources/db/schema.sql)
+!pragma layout smetana
+skinparam shadowing false
+skinparam defaultFontName Arial
+hide circle
+skinparam linetype ortho
+
+entity users {
+  * id : VARCHAR(40) <<PK>>
+  --
+  name : VARCHAR(120)
+  role : VARCHAR(20)
+  active : BOOLEAN
+  seq : BIGINT <<unique, insertion order>>
+}
+
+entity credentials {
+  * user_id : VARCHAR(40) <<PK, FK>>
+  --
+  password_hash : VARCHAR(255)  ' salted PBKDF2 hash only
+}
+
+entity equipment {
+  * id : VARCHAR(40) <<PK>>
+  --
+  name, type, location, status : VARCHAR
+  active : BOOLEAN
+  total_usage_hours : DOUBLE
+  hours_since_maintenance : DOUBLE
+  threshold_hours : DOUBLE
+}
+
+entity maintenance_requests {
+  * id : VARCHAR(40) <<PK>>
+  --
+  equipment_id : VARCHAR(40) <<FK>>
+  reported_by : VARCHAR(40) <<FK>>
+  description, urgency, status : VARCHAR
+  assigned_to : VARCHAR(120) <<null until assigned>>
+}
+
+entity maintenance_notes {
+  * seq : BIGINT <<PK>>
+  --
+  request_id : VARCHAR(40) <<FK, cascade>>
+  note : VARCHAR(500)
+}
+
+entity sessions {
+  * id : VARCHAR(40) <<PK>>
+  --
+  title, studio : VARCHAR
+  instructor_id : VARCHAR(40) <<FK>>
+  start_at, end_at : DATETIME
+  capacity : INT
+}
+
+entity session_equipment {
+  * session_id : VARCHAR(40) <<PK, FK, cascade>>
+  * equipment_id : VARCHAR(40) <<PK, FK>>
+  --
+  sort_order : INT
+}
+
+entity bookings {
+  * seq : BIGINT <<PK>>
+  --
+  session_id : VARCHAR(40) <<FK, cascade>>
+  user_id : VARCHAR(40) <<FK>>
+  (session_id, user_id) unique
+}
+
+entity notifications {
+  * id : BIGINT <<PK>>
+  --
+  user_id : VARCHAR(40)
+  message : VARCHAR(1000)
+  created_at : DATETIME
+}
+
+entity activity_log {
+  * id : BIGINT <<PK>>
+  --
+  entry : VARCHAR(1000)
+  created_at : DATETIME
+}
+
+users ||--o| credentials
+users ||--o{ maintenance_requests : reports
+equipment ||--o{ maintenance_requests
+maintenance_requests ||--o{ maintenance_notes
+users ||--o{ sessions : teaches
+sessions ||--o{ session_equipment
+equipment ||--o{ session_equipment
+sessions ||--o{ bookings
+users ||--o{ bookings
+@enduml

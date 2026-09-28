@@ -1,0 +1,38 @@
+@startuml sequence-sign-in
+title Sign in and call a protected endpoint (REST)
+skinparam shadowing false
+skinparam defaultFontName Arial
+autonumber
+
+actor User
+participant "React UI" as UI
+participant "AccountController" as Api
+participant "IwfcFacade" as Facade
+participant "AuthenticationUseCase" as Auth
+participant "PasswordHasher\n(PBKDF2)" as Hasher
+database "users + credentials" as Store
+
+User -> UI : user id + password
+UI -> Api : POST /api/login {userId, password}
+Api -> Facade : signIn(userId, password)
+Facade -> Auth : signIn(...)
+Auth -> Store : find active user + credential
+Auth -> Hasher : matches(password, storedHash)
+alt wrong password, unknown or deactivated user
+  Auth --> Api : InvalidCredentialsException\n("Invalid user id or password", the same for every case)
+  Api --> UI : 401 INVALID_CREDENTIALS
+else success
+  Auth --> Api : AuthSession(token, user, expiresAt)
+  Api --> UI : 200 {token, user, expiresAt}
+end
+
+UI -> Api : GET /api/equipment\nAuthorization: Bearer <token>
+Api -> Facade : authenticate(token)
+Facade -> Auth : authenticate(token)
+Auth --> Api : the signed-in user
+Api --> UI : 200 equipment list
+note over Auth
+  Token expired, signed out or its user deactivated:
+  401, and the UI returns to the login screen.
+end note
+@enduml
