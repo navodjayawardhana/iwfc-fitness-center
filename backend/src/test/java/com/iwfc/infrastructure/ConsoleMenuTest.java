@@ -267,6 +267,12 @@ class ConsoleMenuTest {
     }
 
     @Test
+    void should_let_an_administrator_send_reminders_and_deny_a_member() {
+        assertTrue(run("A-1", PW, "24", "0").contains("Reminders sent"));
+        assertTrue(run("M-1", PW, "24", "0").contains("Access denied"));
+    }
+
+    @Test
     void should_deny_a_member_who_opens_the_user_list() {
         String output = run("M-1", PW, "21", "0");
 

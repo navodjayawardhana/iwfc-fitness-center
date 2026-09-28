@@ -61,6 +61,8 @@ public final class ApiDtos {
         }
     }
 
+    public record ReminderResponse(int sent) { }
+
     public record FaultRequest(String equipmentId, String description, String urgency) { }
 
     public record AssignRequest(String technician) { }

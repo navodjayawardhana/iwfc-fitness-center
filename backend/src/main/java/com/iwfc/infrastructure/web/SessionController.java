@@ -76,6 +76,12 @@ public class SessionController {
         system.cancelSession(ApiAuth.user(system, authorization), id);
     }
 
+    /** Sends reminders for sessions starting within the next day; staff only. */
+    @PostMapping("/api/reminders")
+    ApiDtos.ReminderResponse reminders(@RequestHeader("Authorization") String authorization) {
+        return new ApiDtos.ReminderResponse(system.sendReminders(ApiAuth.user(system, authorization)));
+    }
+
     @PostMapping("/api/sessions/{id}/complete")
     SessionResponse complete(@RequestHeader("Authorization") String authorization, @PathVariable String id) {
         system.completeSession(ApiAuth.user(system, authorization), id);

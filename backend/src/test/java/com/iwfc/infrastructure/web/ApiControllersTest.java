@@ -283,6 +283,15 @@ class ApiControllersTest {
         mvc.perform(as("M-1", post("/api/sessions/nope/bookings"))).andExpect(status().isNotFound());
     }
 
+    @Test
+    void should_let_staff_send_reminders_and_answer_403_for_a_member() throws Exception {
+        mvc.perform(as("A-1", post("/api/reminders")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sent").isNumber());
+        mvc.perform(as("I-1", post("/api/reminders"))).andExpect(status().isOk());
+        mvc.perform(as("M-1", post("/api/reminders"))).andExpect(status().isForbidden());
+    }
+
     // ---- maintenance ----------------------------------------------------------------------------
 
     @Test

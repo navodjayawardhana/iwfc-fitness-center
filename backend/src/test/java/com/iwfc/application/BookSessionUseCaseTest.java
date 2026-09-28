@@ -89,6 +89,17 @@ class BookSessionUseCaseTest {
         assertEquals(4, sessions.availableSessions().size());
     }
 
+    @Test
+    void should_add_a_wellness_tip_to_the_booking_confirmation() {
+        sessions.schedule(instructor, "S-1", "Yoga", studioA, slot(9, 10), 10, List.of());
+
+        sessions.book("S-1", member);
+
+        String message = notifications.inboxOf("M-1").get(0);
+        assertTrue(message.startsWith("Booked: Yoga"));
+        assertTrue(message.contains("Tip:"));
+    }
+
     // B
     @Test
     void should_stop_offering_a_session_once_it_is_full() {

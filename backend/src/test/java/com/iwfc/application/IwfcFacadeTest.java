@@ -199,6 +199,13 @@ class IwfcFacadeTest {
         assertThrows(InvalidCredentialsException.class, () -> system.authenticate(session.token()));
     }
 
+    @Test
+    void should_let_staff_send_reminders_and_refuse_members() {
+        assertTrue(system.sendReminders(system.findUser("A-1")) >= 0);
+        assertTrue(system.sendReminders(system.findUser("I-1")) >= 0);
+        assertThrows(UnauthorizedAccessException.class, () -> system.sendReminders(system.findUser("M-1")));
+    }
+
     // S
     @Test
     void should_schedule_a_recurring_weekly_class_through_the_facade() {

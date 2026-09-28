@@ -36,6 +36,7 @@ public abstract class User {
     public abstract boolean canReportFaults();
     public abstract boolean canLogEquipmentUsage();
     public abstract boolean canBookSessions();
+    public abstract boolean canSendReminders();
 
     public void ensureCanManageUsers() { require(canManageUsers(), "manage user accounts"); }
     public void ensureCanManageEquipment() { require(canManageEquipment(), "manage equipment"); }
@@ -44,6 +45,7 @@ public abstract class User {
     public void ensureCanScheduleSessions() { require(canScheduleSessions(), "schedule sessions"); }
     public void ensureCanReportFaults() { require(canReportFaults(), "report faults"); }
     public void ensureCanLogEquipmentUsage() { require(canLogEquipmentUsage(), "log equipment usage"); }
+    public void ensureCanSendReminders() { require(canSendReminders(), "send reminders"); }
     public void ensureCanBookSessions() { require(canBookSessions(), "book sessions"); }
 
     private void require(boolean allowed, String action) {

@@ -10,6 +10,7 @@ import com.iwfc.application.usecase.AuthenticationUseCase;
 import com.iwfc.application.usecase.BookSessionUseCase;
 import com.iwfc.application.usecase.EquipmentInventoryUseCase;
 import com.iwfc.application.usecase.MaintenanceUseCase;
+import com.iwfc.application.usecase.ReminderUseCase;
 import com.iwfc.application.usecase.UserAccountUseCase;
 import com.iwfc.domain.model.Administrator;
 import com.iwfc.domain.model.Credential;
@@ -115,13 +116,14 @@ public final class IwfcBootstrap {
 
         EquipmentInventoryUseCase inventory =
                 new EquipmentInventoryUseCase(equipment, new EquipmentFactory(), notifications);
-        BookSessionUseCase sessions = new BookSessionUseCase(
-                new SessionSchedule(OPENS_AT, CLOSES_AT), equipment, inventory, notifications);
+        SessionSchedule schedule = new SessionSchedule(OPENS_AT, CLOSES_AT);
+        BookSessionUseCase sessions = new BookSessionUseCase(schedule, equipment, inventory, notifications);
+        ReminderUseCase reminders = new ReminderUseCase(schedule, notifications, Clock.systemDefaultZone());
         MaintenanceUseCase maintenance = new MaintenanceUseCase(requests, equipment, notifications);
         AuthenticationUseCase authentication =
                 new AuthenticationUseCase(users, credentials, hasher, Clock.systemUTC(), TOKEN_LIFETIME);
         UserAccountUseCase accounts = new UserAccountUseCase(users, credentials, hasher);
         return new IwfcFacade(inventory, sessions, maintenance, notifications, activityLog, users, authentication,
-                accounts);
+                accounts, reminders);
     }
 }
