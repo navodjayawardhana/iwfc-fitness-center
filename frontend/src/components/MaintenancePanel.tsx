@@ -20,9 +20,9 @@ export default function MaintenancePanel({ user, report }: Props) {
 
   // Members are deliberately allowed to try: the API answers 403 and the panel shows why.
   const path = isInstructor ? '/maintenance?mine=true' : '/maintenance';
-  const { data: requests, failed, reload } = useLoad(() => call<MaintenanceRequest[]>('GET', path, user.id), [user.id], report);
+  const { data: requests, failed, reload } = useLoad(() => call<MaintenanceRequest[]>('GET', path), [user.id], report);
   const { data: log, reload: reloadLog } = useLoad(
-    () => (isAdmin ? call<string[]>('GET', '/maintenance/activity-log', user.id) : Promise.resolve<string[]>([])),
+    () => (isAdmin ? call<string[]>('GET', '/maintenance/activity-log') : Promise.resolve<string[]>([])),
     [user.id],
     report,
   );
@@ -50,7 +50,7 @@ export default function MaintenancePanel({ user, report }: Props) {
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    void run(() => call('POST', '/maintenance', user.id, form), 'Fault reported');
+    void run(() => call('POST', '/maintenance', form), 'Fault reported');
   };
 
   return (
@@ -88,7 +88,7 @@ export default function MaintenancePanel({ user, report }: Props) {
                 />
                 <button
                   className={btn}
-                  onClick={() => void run(() => call('POST', `/maintenance/${request.id}/assign`, user.id, { technician: technician[request.id] }), 'Request assigned')}
+                  onClick={() => void run(() => call('POST', `/maintenance/${request.id}/assign`, { technician: technician[request.id] }), 'Request assigned')}
                 >
                   Assign
                 </button>
@@ -104,11 +104,11 @@ export default function MaintenancePanel({ user, report }: Props) {
                 />
                 <button
                   className={btnGhost}
-                  onClick={() => void run(() => call('POST', `/maintenance/${request.id}/progress`, user.id, { note: note[request.id] }), 'Progress recorded')}
+                  onClick={() => void run(() => call('POST', `/maintenance/${request.id}/progress`, { note: note[request.id] }), 'Progress recorded')}
                 >
                   Add note
                 </button>
-                <button className={btn} onClick={() => void run(() => call('POST', `/maintenance/${request.id}/complete`, user.id), 'Request completed')}>
+                <button className={btn} onClick={() => void run(() => call('POST', `/maintenance/${request.id}/complete`), 'Request completed')}>
                   Complete
                 </button>
               </div>

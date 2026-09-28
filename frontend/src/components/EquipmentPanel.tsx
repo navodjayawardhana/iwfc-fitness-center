@@ -31,7 +31,7 @@ function statusChip(item: Equipment) {
 }
 
 export default function EquipmentPanel({ user, report }: Props) {
-  const { data: items, reload } = useLoad(() => call<Equipment[]>('GET', '/equipment', user.id), [user.id], report);
+  const { data: items, reload } = useLoad(() => call<Equipment[]>('GET', '/equipment'), [user.id], report);
   const run = useAction(report, reload);
   const [form, setForm] = useState({ type: 'TREADMILL', id: '', name: '', location: 'Cardio Zone' });
   const [hours, setHours] = useState<Record<string, string>>({});
@@ -41,7 +41,7 @@ export default function EquipmentPanel({ user, report }: Props) {
 
   const add = (event: FormEvent) => {
     event.preventDefault();
-    void run(() => call('POST', '/equipment', user.id, form), `Added ${form.id}`);
+    void run(() => call('POST', '/equipment', form), `Added ${form.id}`);
   };
 
   return (
@@ -93,7 +93,7 @@ export default function EquipmentPanel({ user, report }: Props) {
                             className={btn}
                             onClick={() =>
                               void run(
-                                () => call('POST', `/equipment/${item.id}/usage`, user.id, { hours: Number(hours[item.id]) }),
+                                () => call('POST', `/equipment/${item.id}/usage`, { hours: Number(hours[item.id]) }),
                                 `Logged usage on ${item.id}`,
                               )
                             }
@@ -105,7 +105,7 @@ export default function EquipmentPanel({ user, report }: Props) {
                       {isAdmin && item.active && (
                         <button
                           className={btnDanger}
-                          onClick={() => void run(() => call('POST', `/equipment/${item.id}/deactivate`, user.id), `Deactivated ${item.id}`)}
+                          onClick={() => void run(() => call('POST', `/equipment/${item.id}/deactivate`), `Deactivated ${item.id}`)}
                         >
                           Deactivate
                         </button>

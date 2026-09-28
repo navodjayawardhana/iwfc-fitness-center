@@ -1,4 +1,6 @@
-// One small client for the REST API. The acting user travels in the X-User-Id header (demo-level identity).
+// One small client for the REST API. After sign-in the token travels as: Authorization: Bearer <token>.
+
+import type { LoginResult } from './types';
 
 export class ApiError extends Error {
   readonly status: number;
@@ -18,12 +20,47 @@ interface ErrorBody {
   message?: string;
 }
 
-export async function call<T = unknown>(method: Method, path: string, userId: string | null, body?: unknown): Promise<T> {
+const TOKEN_KEY = 'fitpulse.token';
+
+/** The token lives in sessionStorage: it survives a page reload but not closing the tab. */
+export const tokenStore = {
+  get(): string | null {
+    try {
+      return sessionStorage.getItem(TOKEN_KEY);
+    } catch {
+      return null;
+    }
+  },
+  save(token: string): void {
+    try {
+      sessionStorage.setItem(TOKEN_KEY, token);
+    } catch {
+      /* storage blocked: the user simply has to sign in again after a reload */
+    }
+  },
+  clear(): void {
+    try {
+      sessionStorage.removeItem(TOKEN_KEY);
+    } catch {
+      /* nothing to clear */
+    }
+  },
+};
+
+let onSessionExpired: (() => void) | null = null;
+
+/** The app registers what to do when the API says the token is no longer valid. */
+export function setSessionExpiredHandler(handler: (() => void) | null): void {
+  onSessionExpired = handler;
+}
+
+export async function call<T = unknown>(method: Method, path: string, body?: unknown): Promise<T> {
+  const token = tokenStore.get();
   const response = await fetch(`/api${path}`, {
     method,
     headers: {
       'Content-Type': 'application/json',
-      ...(userId ? { 'X-User-Id': userId } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
@@ -31,18 +68,36 @@ export async function call<T = unknown>(method: Method, path: string, userId: st
   const data: unknown = await response.json().catch(() => null);
   if (!response.ok) {
     const error = (data ?? {}) as ErrorBody;
+    if (response.status === 401 && token && path !== '/login') {
+      tokenStore.clear();
+      onSessionExpired?.();
+    }
     throw new ApiError(response.status, error.error ?? 'ERROR', error.message ?? response.statusText);
   }
   return data as T;
 }
 
-// Demo accounts that exist in the seeded data.
+export async function signIn(userId: string, password: string): Promise<LoginResult> {
+  const result = await call<LoginResult>('POST', '/login', { userId, password });
+  tokenStore.save(result.token);
+  return result;
+}
+
+export async function signOut(): Promise<void> {
+  try {
+    await call('POST', '/logout');
+  } catch {
+    /* the token may already be invalid; signing out locally is enough */
+  } finally {
+    tokenStore.clear();
+  }
+}
+
+// Quick-fill buttons on the login screen. Only the id is filled in: the password is never stored in the UI.
 export const DEMO_USERS: { id: string; label: string }[] = [
-  { id: 'A-1', label: 'Amal Perera (Administrator)' },
-  { id: 'I-1', label: 'Nimali Silva (Instructor)' },
-  { id: 'I-2', label: 'Kasun Fernando (Instructor)' },
-  { id: 'M-1', label: 'Dilani Jayasinghe (Member)' },
-  { id: 'M-2', label: 'Ruwan Bandara (Member)' },
+  { id: 'A-1', label: 'Administrator' },
+  { id: 'I-1', label: 'Instructor' },
+  { id: 'M-1', label: 'Member' },
 ];
 
 const TITLES: Record<string, string> = {
@@ -52,6 +107,8 @@ const TITLES: Record<string, string> = {
   INVALID_STATUS_TRANSITION: 'Invalid workflow step',
   NOT_FOUND: 'Not found',
   BAD_REQUEST: 'Invalid input',
+  INVALID_CREDENTIALS: 'Sign-in failed',
+  MISSING_TOKEN: 'Sign-in needed',
 };
 
 export function describeError(error: unknown): string {

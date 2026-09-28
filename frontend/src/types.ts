@@ -6,6 +6,13 @@ export interface User {
   id: string;
   name: string;
   role: Role;
+  active: boolean;
+}
+
+export interface LoginResult {
+  token: string;
+  expiresAt: string;
+  user: User;
 }
 
 export type EquipmentStatus = 'OPERATIONAL' | 'FAULTY' | 'UNDER_MAINTENANCE';
