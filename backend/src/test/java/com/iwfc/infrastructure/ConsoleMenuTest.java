@@ -295,6 +295,40 @@ class ConsoleMenuTest {
         assertTrue(output.contains("own account"));
     }
 
+    @Test
+    void should_deactivate_equipment_and_show_it_as_deactivated() {
+        String output = run("A-1", PW, "4", "TM-02", "1", "0");
+
+        assertTrue(output.contains("Equipment deactivated"));
+        assertTrue(output.contains("DEACTIVATED"));
+    }
+
+    @Test
+    void should_log_usage_and_show_it_in_the_equipment_table() {
+        String output = run("I-1", PW, "5", "TM-01", "2.5", "1", "0");
+
+        assertTrue(output.contains("Usage logged"));
+        assertTrue(output.contains("2.5 / 100"));
+    }
+
+    @Test
+    void should_let_a_member_cancel_their_booking() {
+        String output = run("M-1", PW, "9", "S-1", "10", "S-1", "0");
+
+        assertTrue(output.contains("Booking cancelled"));
+    }
+
+    @Test
+    void should_say_not_found_for_an_unknown_session() {
+        assertTrue(run("M-1", PW, "9", "nope", "0").contains("Not found"));
+    }
+
+    @Test
+    void should_explain_an_unknown_urgency_and_a_rejected_usage_amount() {
+        assertTrue(run("I-1", PW, "13", "SB-04", "Broken", "EXTREME", "0").contains("[Error]"));
+        assertTrue(run("I-1", PW, "5", "TM-01", "-3", "0").contains("[Rejected]"));
+    }
+
     // S
     @Test
     void should_schedule_a_new_session_when_the_details_are_valid() {

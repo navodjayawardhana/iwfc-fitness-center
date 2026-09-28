@@ -178,6 +178,33 @@ class PersistenceContractTest {
         assertEquals(2, storage.credentials().count());
     }
 
+    @ParameterizedTest
+    @EnumSource(Kind.class)
+    void should_list_check_and_delete_credentials(Kind kind) {
+        Storage storage = storage(kind);
+        storage.credentials().save(new Credential("M-1", "pbkdf2$1$c2E=$aGE="));
+        storage.credentials().save(new Credential("M-2", "pbkdf2$1$c2E=$aGU="));
+
+        assertEquals(2, storage.credentials().findAll().size());
+        assertTrue(storage.credentials().existsById("M-2"));
+
+        storage.credentials().deleteById("M-2");
+
+        assertFalse(storage.credentials().existsById("M-2"));
+        assertEquals(1, storage.credentials().count());
+    }
+
+    @ParameterizedTest
+    @EnumSource(Kind.class)
+    void should_delete_a_user_by_id(Kind kind) {
+        Storage storage = storage(kind);
+
+        storage.users().deleteById("M-2");
+
+        assertFalse(storage.users().existsById("M-2"));
+        assertEquals(3, storage.users().count());
+    }
+
     // ---- maintenance requests -------------------------------------------------------------------
 
     @ParameterizedTest
