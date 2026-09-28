@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { call } from '../api';
 import { useAction, useLoad } from '../hooks';
+import TimetableView from './TimetableView';
 import type { Report, Session, User } from '../types';
 import { btn, btnDanger, btnGhost, card, chip, field, muted } from '../ui';
 
@@ -38,6 +39,8 @@ export default function SessionsPanel({ user, report }: Props) {
     weeks: '1',
   });
 
+  const [view, setView] = useState<'list' | 'week'>('list');
+
   const isInstructor = user.role === 'Instructor';
   const isMember = user.role === 'Member';
 
@@ -61,8 +64,19 @@ export default function SessionsPanel({ user, report }: Props) {
 
   return (
     <section>
-      <h2 className="mt-2 mb-3 text-xl font-semibold">Sessions</h2>
-      <div className="mb-4 grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3">
+      <div className="mt-2 mb-3 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-xl font-semibold">Sessions</h2>
+        <div className="flex gap-1" role="group" aria-label="Session view">
+          <button className={view === 'list' ? btn : btnGhost} aria-pressed={view === 'list'} onClick={() => setView('list')}>
+            List
+          </button>
+          <button className={view === 'week' ? btn : btnGhost} aria-pressed={view === 'week'} onClick={() => setView('week')}>
+            Week
+          </button>
+        </div>
+      </div>
+      {view === 'week' && <TimetableView sessions={sessions ?? []} />}
+      <div className={view === 'week' ? 'hidden' : 'mb-4 grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3'}>
         {(sessions ?? []).map((session) => (
           <article className={card} key={session.id}>
             <h3 className="font-semibold">{session.title}</h3>

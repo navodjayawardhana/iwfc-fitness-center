@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { call, describeError, setSessionExpiredHandler, signOut, tokenStore } from './api';
+import DashboardPanel, { type DashboardTarget } from './components/DashboardPanel';
 import EquipmentPanel from './components/EquipmentPanel';
 import LoginScreen from './components/LoginScreen';
 import MaintenancePanel from './components/MaintenancePanel';
@@ -9,9 +10,10 @@ import UsersPanel from './components/UsersPanel';
 import type { Message, User } from './types';
 import { btnGhost, muted } from './ui';
 
-type TabId = 'equipment' | 'sessions' | 'maintenance' | 'notifications' | 'users';
+type TabId = 'dashboard' | DashboardTarget | 'users';
 
 const TABS: { id: TabId; label: string; adminOnly?: boolean }[] = [
+  { id: 'dashboard', label: 'Dashboard' },
   { id: 'equipment', label: 'Equipment' },
   { id: 'sessions', label: 'Sessions' },
   { id: 'maintenance', label: 'Maintenance' },
@@ -22,7 +24,7 @@ const TABS: { id: TabId; label: string; adminOnly?: boolean }[] = [
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [checking, setChecking] = useState(() => tokenStore.get() !== null);
-  const [tab, setTab] = useState<TabId>('sessions');
+  const [tab, setTab] = useState<TabId>('dashboard');
   const [message, setMessage] = useState<Message | null>(null);
 
   const report = useCallback((next: Message | null) => setMessage(next), []);
@@ -49,7 +51,7 @@ export default function App() {
     await signOut().catch((error: unknown) => report({ kind: 'error', text: describeError(error) }));
     setUser(null);
     setMessage(null);
-    setTab('sessions');
+    setTab('dashboard');
   };
 
   if (checking) {
@@ -127,6 +129,7 @@ export default function App() {
       )}
 
       <main>
+        {tab === 'dashboard' && <DashboardPanel user={user} report={report} goTo={setTab} />}
         {tab === 'equipment' && <EquipmentPanel user={user} report={report} />}
         {tab === 'sessions' && <SessionsPanel user={user} report={report} />}
         {tab === 'maintenance' && <MaintenancePanel user={user} report={report} />}
