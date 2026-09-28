@@ -180,6 +180,39 @@ class FitnessSessionTest {
                 () -> new FitnessSession("S-1", "Spin", instructor, studioA, slot(9, 10), 10, List.of(bike)));
     }
 
+    // I - rebuilding a stored session (used by the database adapter)
+    @Test
+    void should_restore_a_session_with_its_stored_bookings() {
+        Member supun = new Member("M-1", "Supun");
+        Member navod = new Member("M-2", "Navod");
+
+        FitnessSession restored = FitnessSession.restore("S-1", "Morning Yoga", instructor, studioA, slot(9, 10), 10,
+                List.of(), List.of(supun, navod));
+
+        assertEquals(2, restored.bookedCount());
+        assertEquals(8, restored.availableSpots());
+        assertThrows(InvalidBookingException.class, () -> restored.book(supun));
+    }
+
+    @Test
+    void should_restore_a_session_even_if_its_equipment_has_since_become_faulty() {
+        Equipment bike = factory.create(EquipmentType.SPIN_BIKE, "SB-04", "Spin Bike 04", new Location("Cardio Zone"));
+        bike.markFaulty();
+
+        FitnessSession restored = FitnessSession.restore("S-1", "Spin", instructor, studioA, slot(9, 10), 10,
+                List.of(bike), List.of());
+
+        assertEquals(List.of(bike), restored.equipment());
+    }
+
+    @Test
+    void should_refuse_stored_bookings_that_exceed_the_capacity() {
+        List<User> tooMany = List.of(new Member("M-1", "A"), new Member("M-2", "B"), new Member("M-3", "C"));
+
+        assertThrows(InvalidBookingException.class, () -> FitnessSession.restore("S-1", "Tiny", instructor, studioA,
+                slot(9, 10), 2, List.of(), tooMany));
+    }
+
     // S - Simple
     @Test
     void should_create_the_same_session_one_week_later_when_repeated() {
