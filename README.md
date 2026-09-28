@@ -33,7 +33,13 @@ npm install
 npm run dev          # npm run build = type-check (tsc) + production build
 ```
 
-Demo users (seeded): `A-1` Administrator, `I-1` and `I-2` Instructors, `M-1` and `M-2` Members. The REST API reads the acting user from the `X-User-Id` header (demo-level identity, no passwords).
+## Sign-in
+Seeded demo users: `A-1` Administrator, `I-1` and `I-2` Instructors, `M-1` and `M-2` Members. **Demo password for every seeded account: `fitpulse-demo`** (local demo data only; new accounts choose their own password of 8+ characters).
+
+- **Console / React:** sign in with user id + password. Administrators get user management (list, add, deactivate).
+- **REST API:** `POST /api/login` with `{"userId":"A-1","password":"..."}` returns a token; send it on every other request as `Authorization: Bearer <token>`. `POST /api/logout` ends the session. Tokens expire after 8 hours and stop working if the account is deactivated.
+- **How passwords are handled:** only a salted PBKDF2-HMAC-SHA256 hash (210,000 iterations) is stored, wrong id and wrong password give the same message, and the password is never printed or logged.
+- **Limits (prototype):** sessions and users are in memory, so a restart signs everyone out and resets data; no rate limiting or account lockout; HTTPS is needed in real use.
 
 ## Architecture
 ```

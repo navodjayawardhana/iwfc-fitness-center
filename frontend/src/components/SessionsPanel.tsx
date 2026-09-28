@@ -24,7 +24,7 @@ function formatWhen(iso: string): string {
 }
 
 export default function SessionsPanel({ user, report }: Props) {
-  const { data: sessions, reload } = useLoad(() => call<Session[]>('GET', '/sessions?all=true', user.id), [user.id], report);
+  const { data: sessions, reload } = useLoad(() => call<Session[]>('GET', '/sessions?all=true'), [user.id], report);
   const run = useAction(report, reload);
   const [form, setForm] = useState({
     id: '',
@@ -54,7 +54,7 @@ export default function SessionsPanel({ user, report }: Props) {
       weeks: Number(form.weeks),
       equipmentIds: form.equipment.split(',').map((id) => id.trim()).filter(Boolean),
     };
-    void run(() => call('POST', '/sessions', user.id, body), `Scheduled ${form.title}`);
+    void run(() => call('POST', '/sessions', body), `Scheduled ${form.title}`);
   };
 
   const set = (key: keyof typeof form) => (event: { target: { value: string } }) => setForm({ ...form, [key]: event.target.value });
@@ -84,20 +84,20 @@ export default function SessionsPanel({ user, report }: Props) {
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
               {isMember && (
                 <>
-                  <button className={btn} onClick={() => void run(() => call('POST', `/sessions/${session.id}/bookings`, user.id), `Booked ${session.title}`)}>
+                  <button className={btn} onClick={() => void run(() => call('POST', `/sessions/${session.id}/bookings`), `Booked ${session.title}`)}>
                     Book
                   </button>
-                  <button className={btnGhost} onClick={() => void run(() => call('DELETE', `/sessions/${session.id}/bookings`, user.id), 'Booking cancelled')}>
+                  <button className={btnGhost} onClick={() => void run(() => call('DELETE', `/sessions/${session.id}/bookings`), 'Booking cancelled')}>
                     Cancel booking
                   </button>
                 </>
               )}
               {isInstructor && (
                 <>
-                  <button className={btn} onClick={() => void run(() => call('POST', `/sessions/${session.id}/complete`, user.id), 'Usage logged for the session equipment')}>
+                  <button className={btn} onClick={() => void run(() => call('POST', `/sessions/${session.id}/complete`), 'Usage logged for the session equipment')}>
                     Complete
                   </button>
-                  <button className={btnDanger} onClick={() => void run(() => call('DELETE', `/sessions/${session.id}`, user.id), `Cancelled ${session.title}`)}>
+                  <button className={btnDanger} onClick={() => void run(() => call('DELETE', `/sessions/${session.id}`), `Cancelled ${session.title}`)}>
                     Cancel session
                   </button>
                 </>

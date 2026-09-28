@@ -9,7 +9,7 @@ interface Props {
 }
 
 export default function NotificationsPanel({ user, report }: Props) {
-  const { data: inbox, reload } = useLoad(() => call<string[]>('GET', '/notifications', user.id), [user.id], report);
+  const { data: inbox, reload } = useLoad(() => call<string[]>('GET', '/notifications'), [user.id], report);
 
   return (
     <section>
