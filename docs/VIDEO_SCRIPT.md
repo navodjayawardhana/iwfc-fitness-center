@@ -15,13 +15,16 @@ Slide 1 of the PowerPoint must carry the video link (YouTube or OneDrive). Speak
 | 9:30–10:00 | Wrap-up | Limitations and what you would do next |
 
 ## Demo script (console)
-1. `M-1` → option 5 (sessions) → 8 (book `S-1`) → 15 (notification).
-2. `M-1` → 11 → "Access denied".
-3. Switch user (16) → `I-1` → 10 (report `SB-04`, HIGH).
-4. Switch → `A-1` → 11, 12 (assign `MR-001`), 13 (note), 14 (complete).
-5. Switch → `I-1` → 15 (three notifications).
-6. `A-1` → 2 (add `TM-01` again) → "Duplicate".
-7. `I-2` → 6 (schedule in Studio A at 09:00) → "Invalid booking".
+Menu numbers: EQUIPMENT 1–5, SESSIONS 6–12, MAINTENANCE 13–18, ACCOUNT 19–20, 0 = exit. Options a role cannot use are dimmed and marked (for example "Administrator only").
+
+1. `M-1` → 6 (sessions table) → 9 (book `S-1`) → 19 (notification).
+2. `M-1` → 14 → "Access denied" (UnauthorizedAccessException).
+3. 20 (switch user) → `I-1` → 13 (report `SB-04`, HIGH) → 14 (own requests) → 20.
+4. Switch → `A-1` → 15 (assign `MR-001`), 16 (note), 17 (complete), 18 (activity log).
+5. Switch → `I-1` → 19 (three notifications).
+6. `A-1` → 2 (add `TREADMILL`, `TM-01` again) → "Duplicate".
+7. `I-2` → 7 (schedule in Studio A at 09:00 next Monday) → "Invalid booking".
+8. `I-1` → 5 (log 100 hours on `TM-01`) → switch `A-1` → 1 (maintenance due) → 19 (alert in inbox).
 
 ## Demo script (React + API)
 Start `mvn spring-boot:run` (in backend) and `npm run dev` (in frontend), open http://localhost:5173, use the "Signed in as" switcher to walk through the same steps.

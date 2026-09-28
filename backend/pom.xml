@@ -87,6 +87,15 @@
                 </configuration>
             </plugin>
             <plugin>
+                <!-- mvn -q compile exec:java  runs the console app without any -D flag (works in PowerShell too) -->
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.6.4</version>
+                <configuration>
+                    <mainClass>com.iwfc.Main</mainClass>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.15</version>
