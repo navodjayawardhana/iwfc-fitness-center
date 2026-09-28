@@ -1,7 +1,10 @@
 package com.iwfc.application;
 
 import com.iwfc.application.facade.IwfcFacade;
+import com.iwfc.application.security.AuthSession;
 import com.iwfc.domain.exception.DuplicateEquipmentException;
+import com.iwfc.domain.exception.DuplicateUserException;
+import com.iwfc.domain.exception.InvalidCredentialsException;
 import com.iwfc.domain.exception.InvalidBookingException;
 import com.iwfc.domain.exception.ResourceNotFoundException;
 import com.iwfc.domain.exception.UnauthorizedAccessException;
@@ -9,6 +12,7 @@ import com.iwfc.domain.model.FitnessSession;
 import com.iwfc.domain.model.EquipmentType;
 import com.iwfc.domain.model.Location;
 import com.iwfc.domain.model.MaintenanceRequest;
+import com.iwfc.domain.model.Role;
 import com.iwfc.domain.model.TimeSlot;
 import com.iwfc.domain.model.Urgency;
 import com.iwfc.domain.model.User;
@@ -132,6 +136,67 @@ class IwfcFacadeTest {
     @Test
     void should_throw_not_found_when_logging_in_with_an_unknown_id() {
         assertThrows(ResourceNotFoundException.class, () -> system.findUser("nobody"));
+    }
+
+    // Sign-in, tokens and account management through the facade
+    @Test
+    void should_sign_in_a_seeded_user_with_the_demo_password_and_recognise_the_token() {
+        AuthSession session = system.signIn("M-1", IwfcBootstrap.DEMO_PASSWORD);
+
+        assertEquals("Member", session.user().roleName());
+        assertEquals(session.user(), system.authenticate(session.token()));
+    }
+
+    @Test
+    void should_reject_sign_in_with_a_wrong_password() {
+        assertThrows(InvalidCredentialsException.class, () -> system.signIn("M-1", "wrong-password"));
+    }
+
+    @Test
+    void should_reject_the_token_after_sign_out() {
+        AuthSession session = system.signIn("A-1", IwfcBootstrap.DEMO_PASSWORD);
+
+        system.signOut(session.token());
+
+        assertThrows(InvalidCredentialsException.class, () -> system.authenticate(session.token()));
+    }
+
+    @Test
+    void should_let_an_administrator_register_a_user_who_can_sign_in() {
+        User admin = system.findUser("A-1");
+
+        system.registerUser(admin, Role.MEMBER, "M-9", "Mia Perera", "mia-secret-1");
+
+        assertEquals(6, system.listUsers(admin).size());
+        assertEquals("Mia Perera", system.signIn("M-9", "mia-secret-1").user().name());
+    }
+
+    @Test
+    void should_throw_duplicate_user_when_registering_an_existing_id() {
+        User admin = system.findUser("A-1");
+
+        assertThrows(DuplicateUserException.class,
+                () -> system.registerUser(admin, Role.MEMBER, "M-1", "Copy", "copy-secret-1"));
+    }
+
+    @Test
+    void should_throw_unauthorized_when_a_member_registers_or_deactivates_users() {
+        User member = system.findUser("M-1");
+
+        assertThrows(UnauthorizedAccessException.class,
+                () -> system.registerUser(member, Role.MEMBER, "M-9", "Mia", "mia-secret-1"));
+        assertThrows(UnauthorizedAccessException.class, () -> system.deactivateUser(member, "M-2"));
+    }
+
+    @Test
+    void should_stop_a_deactivated_user_from_signing_in_or_using_an_old_token() {
+        User admin = system.findUser("A-1");
+        AuthSession session = system.signIn("M-2", IwfcBootstrap.DEMO_PASSWORD);
+
+        system.deactivateUser(admin, "M-2");
+
+        assertThrows(InvalidCredentialsException.class, () -> system.signIn("M-2", IwfcBootstrap.DEMO_PASSWORD));
+        assertThrows(InvalidCredentialsException.class, () -> system.authenticate(session.token()));
     }
 
     // S
