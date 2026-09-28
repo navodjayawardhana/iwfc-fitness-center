@@ -1,6 +1,7 @@
 package com.iwfc.domain.model;
 
 import com.iwfc.domain.exception.InvalidBookingException;
+import com.iwfc.domain.repository.Repository;
 
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -11,24 +12,26 @@ import java.util.Optional;
 /**
  * Aggregate root for all fitness sessions. Sessions are only added through it, so the rules
  * (operating hours, no double-booking of studio, instructor or equipment) can never be bypassed.
+ * It works over a {@link Repository}, and saves after every change so a database copy stays current.
  */
 public class SessionSchedule {
 
     private final LocalTime opensAt;
     private final LocalTime closesAt;
-    private final List<FitnessSession> sessions = new ArrayList<>();
+    private final Repository<FitnessSession, String> sessions;
 
-    public SessionSchedule(LocalTime opensAt, LocalTime closesAt) {
+    public SessionSchedule(LocalTime opensAt, LocalTime closesAt, Repository<FitnessSession, String> sessions) {
         if (opensAt == null || closesAt == null || !closesAt.isAfter(opensAt)) {
             throw new InvalidBookingException("Closing time must be after opening time");
         }
         this.opensAt = opensAt;
         this.closesAt = closesAt;
+        this.sessions = sessions;
     }
 
     public void schedule(FitnessSession session) {
-        validate(session, sessions);
-        sessions.add(session);
+        validate(session, sessions.findAll());
+        sessions.save(session);
     }
 
     /** Schedules the class for {@code weeks} consecutive weeks, or none at all if any week clashes. */
@@ -36,7 +39,7 @@ public class SessionSchedule {
         if (weeks < 1) {
             throw new InvalidBookingException("A recurring class needs at least one week");
         }
-        List<FitnessSession> planned = new ArrayList<>(sessions);
+        List<FitnessSession> planned = new ArrayList<>(sessions.findAll());
         List<FitnessSession> created = new ArrayList<>();
         for (int week = 0; week < weeks; week++) {
             FitnessSession next = week == 0 ? first : first.repeatedAfterWeeks(week);
@@ -44,32 +47,42 @@ public class SessionSchedule {
             planned.add(next);
             created.add(next);
         }
-        sessions.addAll(created);
+        created.forEach(sessions::save);
         return List.copyOf(created);
     }
 
     public void book(String sessionId, User member) {
-        FitnessSession session = findById(sessionId)
-                .orElseThrow(() -> new InvalidBookingException("No session with id " + sessionId));
+        FitnessSession session = require(sessionId);
         session.book(member);
+        sessions.save(session);
+    }
+
+    public void cancelBooking(String sessionId, User member) {
+        FitnessSession session = require(sessionId);
+        session.cancel(member);
+        sessions.save(session);
     }
 
     public void cancelSession(String sessionId) {
-        if (!sessions.removeIf(session -> session.id().equals(sessionId))) {
-            throw new InvalidBookingException("No session with id " + sessionId);
-        }
+        require(sessionId);
+        sessions.deleteById(sessionId);
     }
 
     public Optional<FitnessSession> findById(String sessionId) {
-        return sessions.stream().filter(session -> session.id().equals(sessionId)).findFirst();
+        return sessions.findById(sessionId);
     }
 
     public List<FitnessSession> allSessions() {
-        return sessions.stream().sorted(byStartTime()).toList();
+        return sessions.findAll().stream().sorted(byStartTime()).toList();
     }
 
     public List<FitnessSession> availableSessions() {
-        return sessions.stream().filter(session -> !session.isFull()).sorted(byStartTime()).toList();
+        return sessions.findAll().stream().filter(session -> !session.isFull()).sorted(byStartTime()).toList();
+    }
+
+    private FitnessSession require(String sessionId) {
+        return sessions.findById(sessionId)
+                .orElseThrow(() -> new InvalidBookingException("No session with id " + sessionId));
     }
 
     private void validate(FitnessSession candidate, List<FitnessSession> existing) {

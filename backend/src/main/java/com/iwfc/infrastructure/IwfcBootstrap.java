@@ -17,6 +17,7 @@ import com.iwfc.domain.model.Credential;
 import com.iwfc.domain.model.Equipment;
 import com.iwfc.domain.model.EquipmentFactory;
 import com.iwfc.domain.model.EquipmentType;
+import com.iwfc.domain.model.FitnessSession;
 import com.iwfc.domain.model.Instructor;
 import com.iwfc.domain.model.Location;
 import com.iwfc.domain.model.MaintenanceRequest;
@@ -116,7 +117,7 @@ public final class IwfcBootstrap {
 
         EquipmentInventoryUseCase inventory =
                 new EquipmentInventoryUseCase(equipment, new EquipmentFactory(), notifications);
-        SessionSchedule schedule = new SessionSchedule(OPENS_AT, CLOSES_AT);
+        SessionSchedule schedule = new SessionSchedule(OPENS_AT, CLOSES_AT, new InMemoryRepository<>(FitnessSession::id));
         BookSessionUseCase sessions = new BookSessionUseCase(schedule, equipment, inventory, notifications);
         ReminderUseCase reminders = new ReminderUseCase(schedule, notifications, Clock.systemDefaultZone());
         MaintenanceUseCase maintenance = new MaintenanceUseCase(requests, equipment, notifications);

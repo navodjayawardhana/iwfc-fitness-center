@@ -37,7 +37,7 @@ class BookSessionUseCaseTest {
     private final EquipmentInventoryUseCase inventory =
             new EquipmentInventoryUseCase(equipment, new EquipmentFactory(), notifications);
     private final BookSessionUseCase sessions = new BookSessionUseCase(
-            new SessionSchedule(LocalTime.of(6, 0), LocalTime.of(22, 0)), equipment, inventory, notifications);
+            new SessionSchedule(LocalTime.of(6, 0), LocalTime.of(22, 0), new InMemoryRepository<>(FitnessSession::id)), equipment, inventory, notifications);
     private final Administrator admin = new Administrator("A-1", "Prasad");
     private final Instructor instructor = new Instructor("I-1", "Nushfa");
     private final Instructor otherInstructor = new Instructor("I-2", "Kamal");

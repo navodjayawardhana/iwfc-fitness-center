@@ -2,6 +2,7 @@ package com.iwfc.domain.model;
 
 import com.iwfc.domain.exception.InvalidBookingException;
 import com.iwfc.domain.exception.UnauthorizedAccessException;
+import com.iwfc.infrastructure.persistence.InMemoryRepository;
 import org.junit.jupiter.api.Test;
 
 import com.iwfc.support.CopyingSessionRepository;
@@ -19,7 +20,7 @@ class SessionScheduleTest {
 
     private static final LocalDate MONDAY = LocalDate.of(2026, 10, 5);
 
-    private final SessionSchedule schedule = new SessionSchedule(LocalTime.of(6, 0), LocalTime.of(22, 0));
+    private final SessionSchedule schedule = new SessionSchedule(LocalTime.of(6, 0), LocalTime.of(22, 0), new InMemoryRepository<>(FitnessSession::id));
     private final EquipmentFactory factory = new EquipmentFactory();
     private final Instructor instructor = new Instructor("I-1", "Nushfa");
     private final Location studioA = new Location("Studio A");
@@ -164,7 +165,7 @@ class SessionScheduleTest {
     @Test
     void should_reject_operating_hours_when_closing_is_not_after_opening() {
         assertThrows(InvalidBookingException.class,
-                () -> new SessionSchedule(LocalTime.of(22, 0), LocalTime.of(6, 0)));
+                () -> new SessionSchedule(LocalTime.of(22, 0), LocalTime.of(6, 0), new InMemoryRepository<>(FitnessSession::id)));
     }
 
     // Persistence: the schedule works over a repository, and a database only keeps what was saved

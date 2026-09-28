@@ -57,15 +57,17 @@ public class BookSessionUseCase {
     }
 
     public void book(String sessionId, User member) {
+        find(sessionId);
+        schedule.book(sessionId, member);
         FitnessSession session = find(sessionId);
-        session.book(member);
         notifications.send(member.id(),
                 "Booked: " + session.title() + " on " + session.slot().start() + " in " + session.studio().name()
                         + ". Tip: " + WellnessTips.tip(session.bookedCount()));
     }
 
     public void cancelBooking(String sessionId, User member) {
-        find(sessionId).cancel(member);
+        find(sessionId);
+        schedule.cancelBooking(sessionId, member);
     }
 
     public void cancelSession(User instructor, String sessionId) {
