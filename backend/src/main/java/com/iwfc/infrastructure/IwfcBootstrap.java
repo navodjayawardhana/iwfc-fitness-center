@@ -14,21 +14,19 @@ import com.iwfc.application.usecase.ReminderUseCase;
 import com.iwfc.application.usecase.UserAccountUseCase;
 import com.iwfc.domain.model.Administrator;
 import com.iwfc.domain.model.Credential;
-import com.iwfc.domain.model.Equipment;
 import com.iwfc.domain.model.EquipmentFactory;
 import com.iwfc.domain.model.EquipmentType;
-import com.iwfc.domain.model.FitnessSession;
 import com.iwfc.domain.model.Instructor;
 import com.iwfc.domain.model.Location;
-import com.iwfc.domain.model.MaintenanceRequest;
 import com.iwfc.domain.model.Member;
 import com.iwfc.domain.model.SessionSchedule;
 import com.iwfc.domain.model.TimeSlot;
-import com.iwfc.domain.model.User;
-import com.iwfc.domain.repository.Repository;
-import com.iwfc.infrastructure.persistence.InMemoryRepository;
+import com.iwfc.infrastructure.persistence.Storage;
+import com.iwfc.infrastructure.persistence.jdbc.DataSources;
+import com.iwfc.infrastructure.persistence.jdbc.JdbcStorage;
 import com.iwfc.infrastructure.security.Pbkdf2PasswordHasher;
 
+import javax.sql.DataSource;
 import java.time.Clock;
 import java.time.DayOfWeek;
 import java.time.Duration;
@@ -36,10 +34,12 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * Composition root: the only place that knows every concrete class and wires them together.
- * Data is hard-coded and kept in memory, as allowed by the brief.
+ * The same wiring runs on in-memory storage (the default) or on MySQL, chosen by environment variables.
  */
 public final class IwfcBootstrap {
 
@@ -55,10 +55,23 @@ public final class IwfcBootstrap {
     private IwfcBootstrap() {
     }
 
+    /**
+     * The system the real console and REST API run. {@code FITPULSE_STORAGE} is {@code memory} (default) or
+     * {@code mysql}; see {@link DataSources#settings} for the MySQL variables.
+     */
+    public static IwfcFacade configured(Map<String, String> environment) {
+        String storage = environment.getOrDefault("FITPULSE_STORAGE", "memory").trim().toLowerCase(Locale.ROOT);
+        return switch (storage) {
+            case "", "memory" -> seededSecure();
+            case "mysql" -> database(DataSources.mysql(DataSources.settings(environment)), Pbkdf2PasswordHasher.strong());
+            default -> throw new IllegalArgumentException(
+                    "Unknown FITPULSE_STORAGE value: " + storage + " (use memory or mysql)");
+        };
+    }
+
     /** A running system with no equipment, sessions or users. */
     public static IwfcFacade empty() {
-        return wire(new InMemoryRepository<>(User::id), new InMemoryRepository<>(Credential::userId),
-                new Pbkdf2PasswordHasher(FAST_ITERATIONS));
+        return wire(Storage.inMemory(), new Pbkdf2PasswordHasher(FAST_ITERATIONS));
     }
 
     /** Sample data with a fast password hash, used by the unit tests. */
@@ -66,23 +79,36 @@ public final class IwfcBootstrap {
         return seeded(new Pbkdf2PasswordHasher(FAST_ITERATIONS));
     }
 
-    /** Sample data with the strong password hash used by the real console and REST API. */
+    /** Sample data with the strong password hash, kept in memory. */
     public static IwfcFacade seededSecure() {
         return seeded(Pbkdf2PasswordHasher.strong());
     }
 
-    /** A running system with sample users, equipment and sessions for the coming Monday. */
     public static IwfcFacade seeded(PasswordHasher hasher) {
-        Repository<User, String> users = new InMemoryRepository<>(User::id);
-        Repository<Credential, String> credentials = new InMemoryRepository<>(Credential::userId);
+        return seed(Storage.inMemory(), hasher);
+    }
+
+    /**
+     * The system on a database. Tables are created if missing; sample data is added only when the database has
+     * no users yet, so a restart finds everything exactly as it was left.
+     */
+    public static IwfcFacade database(DataSource dataSource, PasswordHasher hasher) {
+        Storage storage = JdbcStorage.create(dataSource);
+        return storage.users().count() == 0 ? seed(storage, hasher) : wire(storage, hasher);
+    }
+
+    /** Adds sample users, equipment and sessions for the coming Monday, then returns the running system. */
+    private static IwfcFacade seed(Storage storage, PasswordHasher hasher) {
         Administrator admin = new Administrator("A-1", "Amal Perera");
         Instructor nimali = new Instructor("I-1", "Nimali Silva");
         Instructor kasun = new Instructor("I-2", "Kasun Fernando");
-        List.of(admin, nimali, kasun, new Member("M-1", "Dilani Jayasinghe"), new Member("M-2", "Ruwan Bandara"))
-                .forEach(users::save);
         String demoHash = hasher.hash(DEMO_PASSWORD);
-        users.findAll().forEach(user -> credentials.save(new Credential(user.id(), demoHash)));
-        IwfcFacade facade = wire(users, credentials, hasher);
+        List.of(admin, nimali, kasun, new Member("M-1", "Dilani Jayasinghe"), new Member("M-2", "Ruwan Bandara"))
+                .forEach(user -> {
+                    storage.users().save(user);
+                    storage.credentials().save(new Credential(user.id(), demoHash));
+                });
+        IwfcFacade facade = wire(storage, hasher);
 
         Location cardio = new Location("Cardio Zone");
         Location spinStudio = new Location("Spin Studio");
@@ -104,27 +130,24 @@ public final class IwfcBootstrap {
         return facade;
     }
 
-    private static IwfcFacade wire(Repository<User, String> users, Repository<Credential, String> credentials,
-                                   PasswordHasher hasher) {
-        Repository<Equipment, String> equipment = new InMemoryRepository<>(Equipment::id);
-        Repository<MaintenanceRequest, String> requests = new InMemoryRepository<>(MaintenanceRequest::id);
-
-        NotificationService notifications = new NotificationService();
-        AdminMaintenanceLog activityLog = new AdminMaintenanceLog();
+    private static IwfcFacade wire(Storage storage, PasswordHasher hasher) {
+        NotificationService notifications = new NotificationService(storage.notifications());
+        AdminMaintenanceLog activityLog = new AdminMaintenanceLog(storage.activityLog());
         notifications.subscribe(new ReporterNotifier(notifications));
         notifications.subscribe(activityLog);
-        notifications.subscribe(new AdminAlertNotifier(notifications, users));
+        notifications.subscribe(new AdminAlertNotifier(notifications, storage.users()));
 
         EquipmentInventoryUseCase inventory =
-                new EquipmentInventoryUseCase(equipment, new EquipmentFactory(), notifications);
-        SessionSchedule schedule = new SessionSchedule(OPENS_AT, CLOSES_AT, new InMemoryRepository<>(FitnessSession::id));
-        BookSessionUseCase sessions = new BookSessionUseCase(schedule, equipment, inventory, notifications);
+                new EquipmentInventoryUseCase(storage.equipment(), new EquipmentFactory(), notifications);
+        SessionSchedule schedule = new SessionSchedule(OPENS_AT, CLOSES_AT, storage.sessions());
+        BookSessionUseCase sessions = new BookSessionUseCase(schedule, storage.equipment(), inventory, notifications);
         ReminderUseCase reminders = new ReminderUseCase(schedule, notifications, Clock.systemDefaultZone());
-        MaintenanceUseCase maintenance = new MaintenanceUseCase(requests, equipment, notifications);
-        AuthenticationUseCase authentication =
-                new AuthenticationUseCase(users, credentials, hasher, Clock.systemUTC(), TOKEN_LIFETIME);
-        UserAccountUseCase accounts = new UserAccountUseCase(users, credentials, hasher);
-        return new IwfcFacade(inventory, sessions, maintenance, notifications, activityLog, users, authentication,
-                accounts, reminders);
+        MaintenanceUseCase maintenance =
+                new MaintenanceUseCase(storage.requests(), storage.equipment(), notifications);
+        AuthenticationUseCase authentication = new AuthenticationUseCase(storage.users(), storage.credentials(),
+                hasher, Clock.systemUTC(), TOKEN_LIFETIME);
+        UserAccountUseCase accounts = new UserAccountUseCase(storage.users(), storage.credentials(), hasher);
+        return new IwfcFacade(inventory, sessions, maintenance, notifications, activityLog, storage.users(),
+                authentication, accounts, reminders);
     }
 }

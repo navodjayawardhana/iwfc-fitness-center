@@ -43,6 +43,18 @@ class ArchitectureTest {
             .should().dependOnClassesThat().resideInAPackage("com.iwfc.infrastructure..");
 
     @ArchTest
+    static final ArchRule application_is_free_of_frameworks_and_database_apis = noClasses()
+            .that().resideInAPackage("com.iwfc.application..")
+            .should().dependOnClassesThat().resideInAnyPackage(
+                    "org.springframework..", "com.zaxxer..", "com.mysql..", "java.sql..", "javax.sql..", "jakarta..");
+
+    @ArchTest
+    static final ArchRule database_code_lives_only_in_the_jdbc_adapter_package = noClasses()
+            .that().resideOutsideOfPackage("com.iwfc.infrastructure.persistence.jdbc..")
+            .and().resideOutsideOfPackage("com.iwfc.infrastructure")
+            .should().dependOnClassesThat().resideInAnyPackage("java.sql..", "javax.sql..", "org.springframework.jdbc..");
+
+    @ArchTest
     static final ArchRule exceptions_live_in_the_domain_exception_package = classes()
             .that().haveSimpleNameEndingWith("Exception")
             .and().resideInAPackage("com.iwfc..")

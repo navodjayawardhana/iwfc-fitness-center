@@ -23,7 +23,7 @@ public class IwfcApiApplication {
 
     @Bean
     IwfcFacade iwfcFacade() {
-        return IwfcBootstrap.seededSecure();
+        return IwfcBootstrap.configured(System.getenv());
     }
 
     /** Lets the React dev server (Vite on 5173, or 3000) call the API from the browser. */
