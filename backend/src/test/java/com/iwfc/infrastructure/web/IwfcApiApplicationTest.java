@@ -35,7 +35,7 @@ class IwfcApiApplicationTest {
         IwfcFacade system = context.getBean(IwfcFacade.class);
 
         assertEquals("Administrator", system.signIn("A-1", IwfcBootstrap.DEMO_PASSWORD).user().roleName());
-        assertEquals(8, system.listEquipment().size());
+        assertEquals(15, system.listEquipment().size());
     }
 
     @Test

@@ -18,14 +18,14 @@ class StorageConfigurationTest {
     void should_use_memory_when_nothing_is_configured() {
         IwfcFacade system = IwfcBootstrap.configured(Map.of());
 
-        assertEquals(8, system.listEquipment().size());
+        assertEquals(15, system.listEquipment().size());
     }
 
     // O
     @Test
     void should_use_memory_when_asked_for_it_by_name() {
-        assertEquals(8, IwfcBootstrap.configured(Map.of("FITPULSE_STORAGE", "memory")).listEquipment().size());
-        assertEquals(8, IwfcBootstrap.configured(Map.of("FITPULSE_STORAGE", " MEMORY ")).listEquipment().size());
+        assertEquals(15, IwfcBootstrap.configured(Map.of("FITPULSE_STORAGE", "memory")).listEquipment().size());
+        assertEquals(15, IwfcBootstrap.configured(Map.of("FITPULSE_STORAGE", " MEMORY ")).listEquipment().size());
     }
 
     // M - defaults and overrides for the database settings
