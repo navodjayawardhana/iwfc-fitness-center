@@ -1,7 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
 @import 'tailwindcss';
+
+/* Dark styles apply only when <html data-theme="dark"> is set, never from the OS setting.
+   Nothing sets it today, so the app is always light; a theme toggle can set it later. */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* Brand tokens taken from the FitPulse logo: deep teal -> mint gradient, dark navy ink. */
+@theme {
+  --font-display: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --color-mint-300: #5eeebc;
+  --color-mint-400: #34e0a1;
+  --color-mint-500: #2ee6a8;
+  --color-ink-900: #1e293b;
+}
 
 @layer base {
   body {
-    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-family: var(--font-display);
+    /* soft brand glows behind the whole app, in light and dark alike */
+    background-image:
+      radial-gradient(1100px 520px at 88% -12%, rgb(45 212 191 / 0.16), transparent 60%),
+      radial-gradient(900px 520px at -8% 112%, rgb(15 118 110 / 0.12), transparent 60%);
+    background-attachment: fixed;
   }
 }

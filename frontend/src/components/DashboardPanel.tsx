@@ -1,6 +1,7 @@
 import { call } from '../api';
+import { StatusDonut, WeekBars } from './charts';
 import { useLoad } from '../hooks';
-import { formatDay, nextSession, nowIso, requestCounts, sessionsOn, summarizeEquipment, timeOf, todayIso } from '../lib/insights';
+import { addDays, formatDay, nextSession, nowIso, requestCounts, sessionsOn, summarizeEquipment, timeOf, todayIso } from '../lib/insights';
 import type { Equipment, MaintenanceRequest, Report, Session, User } from '../types';
 import { btn, card, chip, muted } from '../ui';
 
@@ -60,6 +61,29 @@ export default function DashboardPanel({ user, report, goTo }: Props) {
           <Stat label={isAdmin ? 'Open requests' : 'My open requests'} value={counts.open} tone={counts.open > 0 ? 'warn' : 'good'} hint={`${counts.pending} pending · ${counts.assigned} assigned`} />
         )}
         <Stat label="Notifications" value={(inbox.data ?? []).length} tone="info" hint="in your inbox" />
+      </div>
+
+      <div className="mt-4 grid gap-3 md:grid-cols-2">
+        <StatusDonut
+          title="Equipment status"
+          centerLabel="units"
+          slices={[
+            { label: 'Operational', value: summary.operational, color: '#059669' },
+            { label: 'Under maintenance', value: summary.underMaintenance, color: '#f59e0b' },
+            { label: 'Faulty', value: summary.faulty, color: '#dc2626' },
+          ]}
+        />
+        <WeekBars
+          title="Sessions · next 7 days"
+          unit="sessions"
+          days={Array.from({ length: 7 }, (_, offset) => {
+            const iso = addDays(today, offset);
+            return {
+              label: new Date(`${iso}T00:00:00`).toLocaleDateString('en-GB', { weekday: 'short' }),
+              value: sessionsOn(sessions.data ?? [], iso).length,
+            };
+          })}
+        />
       </div>
 
       <div className="mt-4 grid gap-3 md:grid-cols-2">

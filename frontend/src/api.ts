@@ -93,13 +93,6 @@ export async function signOut(): Promise<void> {
   }
 }
 
-// Quick-fill buttons on the login screen. Only the id is filled in: the password is never stored in the UI.
-export const DEMO_USERS: { id: string; label: string }[] = [
-  { id: 'A-1', label: 'Administrator' },
-  { id: 'I-1', label: 'Instructor' },
-  { id: 'M-1', label: 'Member' },
-];
-
 const TITLES: Record<string, string> = {
   UNAUTHORIZED_ACCESS: 'Access denied',
   INVALID_BOOKING: 'Invalid booking',
