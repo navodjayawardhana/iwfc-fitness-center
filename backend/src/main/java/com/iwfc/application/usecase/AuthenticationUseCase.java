@@ -21,6 +21,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * Sign-in and bearer tokens. Failures never say whether the id or the password was wrong, and an
  * unknown user still costs one hash check, so timing does not reveal which ids exist.
  * Sessions live in memory: restarting the app signs everyone out.
+ *
+ * <p>CMP 7001 mapping: LO3 — best practices for secure software: PBKDF2 password hashing,
+ * constant-time checks, user-enumeration and timing-attack prevention, expiring bearer tokens.</p>
  */
 public class AuthenticationUseCase {
 

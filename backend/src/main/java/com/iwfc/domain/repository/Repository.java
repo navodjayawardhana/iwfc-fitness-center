@@ -6,6 +6,8 @@ import java.util.Optional;
 /**
  * Port owned by the domain: how entities are stored, without saying where (Dependency Inversion).
  * Generic over the entity type {@code T} and its id type {@code ID}.
+ *
+ * <p>CMP 7001 mapping: Advanced Constructs — Generics managing entity relationships (LO2).</p>
  */
 public interface Repository<T, ID> {
 

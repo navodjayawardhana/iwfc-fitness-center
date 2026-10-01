@@ -12,6 +12,11 @@ import java.util.Optional;
  * Entity: a fault report for one piece of equipment. It owns its workflow
  * (Pending -> Assigned -> Completed) and records a {@link MaintenanceStatusChanged} event for every
  * change, which the application layer turns into notifications.
+ *
+ * <p>CMP 7001 mapping: Functional Requirement 3 — Maintenance Reporting: equipment id, description,
+ * urgency (Low/Medium/High) and status workflow (Pending/Assigned/Completed).
+ * Pattern-influenced design — State (behavioural): behaviour depends on {@link RequestStatus}, and an
+ * illegal transition raises {@link InvalidStatusTransitionException} (LO3, LO4 discussion).</p>
  */
 public class MaintenanceRequest {
 

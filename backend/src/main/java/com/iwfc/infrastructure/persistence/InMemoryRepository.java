@@ -12,6 +12,9 @@ import java.util.function.Function;
 /**
  * Adapter: keeps entities in a {@link LinkedHashMap} (no database needed for the prototype).
  * One generic class serves every entity; it only needs to know how to read an id from an item.
+ *
+ * <p>CMP 7001 mapping: Advanced Constructs — Java Collections ({@link LinkedHashMap}) and Generics (LO2);
+ * hard-coded/in-memory data as permitted by the brief (no database required).</p>
  */
 public class InMemoryRepository<T, ID> implements Repository<T, ID> {
 

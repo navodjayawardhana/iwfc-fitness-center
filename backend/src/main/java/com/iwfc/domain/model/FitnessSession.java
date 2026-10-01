@@ -11,6 +11,9 @@ import java.util.Objects;
  * Entity: one scheduled class (e.g. "Morning Yoga") led by an instructor, held in a studio at a time,
  * optionally using equipment, with a limited number of spots.
  * It guards its own booking rules and knows when it clashes with another session.
+ *
+ * <p>CMP 7001 mapping: Functional Requirement 2 — Session Scheduling: members view and book slots;
+ * full, duplicate or clashing bookings raise {@link InvalidBookingException} (LO3).</p>
  */
 public class FitnessSession {
 

@@ -12,6 +12,10 @@ import com.iwfc.domain.repository.Repository;
 /**
  * Everything the system stores, behind ports. The composition root asks for one bundle, either in memory
  * or on a database, and wires the rest of the system the same way in both cases.
+ *
+ * <p>CMP 7001 mapping: pattern-influenced design — Abstract Factory (creational): one call builds a
+ * consistent family of storage adapters (all in-memory, or all MySQL), so the two can never be mixed
+ * by accident (LO4 discussion).</p>
  */
 public record Storage(Repository<User, String> users,
                       Repository<Credential, String> credentials,

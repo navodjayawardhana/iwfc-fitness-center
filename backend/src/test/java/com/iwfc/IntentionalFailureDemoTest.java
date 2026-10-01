@@ -15,6 +15,9 @@ import java.util.List;
 /**
  * INTENTIONALLY FAILING TESTS (brief: "at least one intentional failing test").
  *
+ * <p>CMP 7001 mapping: Unit Testing — Robustness Verification: intentional failing tests proving the
+ * custom exceptions are thrown (LO3). Run with {@code mvn test -Pshow-failure}.</p>
+ *
  * Each test states a WRONG expectation on purpose: it expects an illegal action to succeed. The system
  * correctly refuses with the custom exception, so the test FAILS and the failure report names that exception.
  * That failure is the proof that the exception is thrown when the error condition is met.

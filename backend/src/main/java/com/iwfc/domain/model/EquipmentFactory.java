@@ -5,6 +5,8 @@ import com.iwfc.domain.exception.InvalidEquipmentOperationException;
 /**
  * Factory (creational pattern): builds Equipment with the maintenance interval that suits its type,
  * so callers never have to know those defaults.
+ *
+ * <p>CMP 7001 mapping: Required Design Patterns — Creational: Factory (LO4).</p>
  */
 public class EquipmentFactory {
 

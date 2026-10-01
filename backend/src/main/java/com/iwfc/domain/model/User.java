@@ -6,6 +6,9 @@ import com.iwfc.domain.exception.UnauthorizedAccessException;
  * Abstraction: what every person in the system is. Each role decides its own permissions,
  * so callers ask a {@code User} what it may do and never test for a concrete class (polymorphism).
  * Fields are private and read through accessors (encapsulation).
+ *
+ * <p>CMP 7001 mapping: Object-Oriented Principles — Abstraction, Encapsulation and Polymorphism
+ * (LO1); role checks raise {@link UnauthorizedAccessException} (LO3, Exception Handling — Unauthorized Access).</p>
  */
 public abstract class User {
 
