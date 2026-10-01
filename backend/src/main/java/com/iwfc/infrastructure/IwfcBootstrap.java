@@ -18,9 +18,13 @@ import com.iwfc.domain.model.EquipmentFactory;
 import com.iwfc.domain.model.EquipmentType;
 import com.iwfc.domain.model.Instructor;
 import com.iwfc.domain.model.Location;
+import com.iwfc.domain.model.MaintenanceRequest;
 import com.iwfc.domain.model.Member;
+import com.iwfc.domain.model.Role;
 import com.iwfc.domain.model.SessionSchedule;
 import com.iwfc.domain.model.TimeSlot;
+import com.iwfc.domain.model.Urgency;
+import com.iwfc.domain.model.User;
 import com.iwfc.infrastructure.persistence.Storage;
 import com.iwfc.infrastructure.persistence.jdbc.DataSources;
 import com.iwfc.infrastructure.persistence.jdbc.JdbcStorage;
@@ -79,9 +83,9 @@ public final class IwfcBootstrap {
         return seeded(new Pbkdf2PasswordHasher(FAST_ITERATIONS));
     }
 
-    /** Sample data with the strong password hash, kept in memory. */
+    /** Sample data plus a full demo week, with the strong password hash, kept in memory. */
     public static IwfcFacade seededSecure() {
-        return seeded(Pbkdf2PasswordHasher.strong());
+        return demo(seeded(Pbkdf2PasswordHasher.strong()));
     }
 
     public static IwfcFacade seeded(PasswordHasher hasher) {
@@ -128,6 +132,87 @@ public final class IwfcBootstrap {
         facade.scheduleSession(nimali, "S-3", "Spin Class", spinStudio,
                 new TimeSlot(monday.atTime(18, 0), monday.atTime(19, 0)), 8, List.of("SB-01", "SB-02"));
         return facade;
+    }
+
+    /**
+     * Extra content for live demos only, never the unit tests or the database path: more people and
+     * equipment, a class on each of the next seven days, a recurring weekly class, bookings, logged
+     * usage that crosses a maintenance threshold, and a maintenance request in every workflow state.
+     */
+    private static IwfcFacade demo(IwfcFacade facade) {
+        User admin = facade.findUser("A-1");
+        User nimali = facade.findUser("I-1");
+        User kasun = facade.findUser("I-2");
+
+        facade.registerUser(admin, Role.INSTRUCTOR, "I-3", "Sachini Weerasinghe", DEMO_PASSWORD);
+        facade.registerUser(admin, Role.MEMBER, "M-3", "Tharindu Senanayake", DEMO_PASSWORD);
+        facade.registerUser(admin, Role.MEMBER, "M-4", "Ishara Gunawardena", DEMO_PASSWORD);
+        facade.registerUser(admin, Role.MEMBER, "M-5", "Chamodi Herath", DEMO_PASSWORD);
+        User sachini = facade.findUser("I-3");
+
+        Location cardio = new Location("Cardio Zone");
+        Location spin = new Location("Spin Studio");
+        Location strength = new Location("Strength Zone");
+        facade.addEquipment(admin, EquipmentType.TREADMILL, "TM-03", "Treadmill 03", cardio);
+        facade.addEquipment(admin, EquipmentType.TREADMILL, "TM-04", "Treadmill 04", cardio);
+        facade.addEquipment(admin, EquipmentType.ROWING_MACHINE, "RM-02", "Rowing Machine 02", strength);
+        facade.addEquipment(admin, EquipmentType.ROWING_MACHINE, "RM-03", "Rowing Machine 03", strength);
+        facade.addEquipment(admin, EquipmentType.SPIN_BIKE, "SB-05", "Spin Bike 05", spin);
+        facade.addEquipment(admin, EquipmentType.SPIN_BIKE, "SB-06", "Spin Bike 06", spin);
+        facade.addEquipment(admin, EquipmentType.HEART_RATE_MONITOR, "HR-02", "Heart Rate Monitor 02", strength);
+
+        // One or two classes on each of the next seven days. Times (07-08 and 20-21) and studios are
+        // chosen so they can never clash with the Monday classes S-1..S-3 (09-10, 11-12, 18-19).
+        LocalDate today = LocalDate.now();
+        Location studioC = new Location("Studio C");
+        daySession(facade, nimali, "S-10", "Sunrise Yoga", studioC, today.plusDays(1), 7, 15, List.of());
+        daySession(facade, sachini, "S-11", "Strength Circuit", strength, today.plusDays(1), 20, 10, List.of("RM-02", "RM-03"));
+        daySession(facade, kasun, "S-12", "HIIT Express", studioC, today.plusDays(2), 7, 12, List.of());
+        daySession(facade, sachini, "S-13", "Evening Spin", spin, today.plusDays(2), 20, 8, List.of("SB-05", "SB-06"));
+        daySession(facade, nimali, "S-14", "Pilates Core", studioC, today.plusDays(3), 7, 12, List.of());
+        daySession(facade, kasun, "S-15", "Boxfit", studioC, today.plusDays(4), 20, 14, List.of());
+        daySession(facade, sachini, "S-16", "Rowing Intervals", strength, today.plusDays(5), 7, 6, List.of("RM-02"));
+        daySession(facade, nimali, "S-17", "Zumba Party", studioC, today.plusDays(6), 20, 20, List.of());
+        daySession(facade, kasun, "S-18", "Full Body Burn", studioC, today.plusDays(7), 7, 12, List.of());
+        facade.scheduleWeeklySession(sachini, "S-20", "Weekly Pilates", new Location("Studio A"),
+                new TimeSlot(today.plusDays(2).atTime(14, 0), today.plusDays(2).atTime(15, 0)), 12, List.of(), 3);
+
+        facade.bookSession("S-1", facade.findUser("M-3"));
+        facade.bookSession("S-1", facade.findUser("M-5"));
+        facade.bookSession("S-10", facade.findUser("M-1"));
+        facade.bookSession("S-10", facade.findUser("M-2"));
+        facade.bookSession("S-10", facade.findUser("M-5"));
+        facade.bookSession("S-12", facade.findUser("M-3"));
+        facade.bookSession("S-13", facade.findUser("M-2"));
+        facade.bookSession("S-13", facade.findUser("M-4"));
+        facade.bookSession("S-14", facade.findUser("M-1"));
+        facade.bookSession("S-16", facade.findUser("M-4"));
+        facade.bookSession("S-17", facade.findUser("M-3"));
+        facade.bookSession("S-17", facade.findUser("M-5"));
+
+        // TM-01 crosses its 100-hour threshold, so the dashboard shows a preventative maintenance alert.
+        facade.logEquipmentUsage(nimali, "TM-01", 60);
+        facade.logEquipmentUsage(kasun, "TM-01", 45);
+        facade.logEquipmentUsage(kasun, "TM-03", 35);
+        facade.logEquipmentUsage(nimali, "SB-01", 80);
+        facade.logEquipmentUsage(sachini, "SB-05", 25);
+        facade.logEquipmentUsage(sachini, "RM-02", 40);
+
+        // One maintenance request in each workflow state: assigned, completed and pending.
+        MaintenanceRequest spinBike = facade.reportFault(nimali, "SB-04", "Resistance fails above level 8", Urgency.HIGH);
+        facade.assignMaintenance(admin, spinBike.id(), "Tech Pradeep");
+        facade.updateMaintenanceProgress(admin, spinBike.id(), "Replacement magnet unit ordered");
+        MaintenanceRequest monitor = facade.reportFault(kasun, "HR-01", "Heart-rate reading drifts after 20 minutes", Urgency.MEDIUM);
+        facade.assignMaintenance(admin, monitor.id(), "Tech Shalini");
+        facade.completeMaintenance(admin, monitor.id());
+        facade.reportFault(sachini, "TM-02", "Belt slips at speeds above 10 km/h", Urgency.LOW);
+        return facade;
+    }
+
+    private static void daySession(IwfcFacade facade, User instructor, String id, String title, Location studio,
+                                   LocalDate day, int startHour, int capacity, List<String> equipmentIds) {
+        facade.scheduleSession(instructor, id, title, studio,
+                new TimeSlot(day.atTime(startHour, 0), day.atTime(startHour + 1, 0)), capacity, equipmentIds);
     }
 
     private static IwfcFacade wire(Storage storage, PasswordHasher hasher) {
