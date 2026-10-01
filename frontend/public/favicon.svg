@@ -6,6 +6,7 @@
     </linearGradient>
   </defs>
   <rect width="64" height="64" rx="14" fill="url(#fp)" />
-  <polyline points="8,34 22,34 28,16 36,50 42,26 46,34 56,34" fill="none" stroke="#ffffff" stroke-width="5"
-            stroke-linecap="round" stroke-linejoin="round" />
+  <polyline points="6,32 16,32 22,16 32,48 38,26 42,32 48,32" fill="none" stroke="#ffffff"
+            stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+  <rect x="51" y="20" width="7" height="24" rx="3.5" fill="#ffffff" />
 </svg>

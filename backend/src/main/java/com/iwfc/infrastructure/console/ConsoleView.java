@@ -23,8 +23,9 @@ public class ConsoleView {
     private static final String DIM = "\u001B[2m";
     private static final String RED = "\u001B[31m";
     private static final String GREEN = "\u001B[32m";
-    private static final String CYAN = "\u001B[36m";
-    private static final String YELLOW = "\u001B[33m";
+    // Brand colours from the FitPulse logo (256-colour ANSI): deep teal and mint green.
+    private static final String TEAL = "\u001B[38;5;30m";
+    private static final String MINT = "\u001B[38;5;49m";
 
     private static final int WIDTH = 62;
     private static final DateTimeFormatter DAY = DateTimeFormatter.ofPattern("EEE dd MMM HH:mm", Locale.ENGLISH);
@@ -73,13 +74,21 @@ public class ConsoleView {
     // ---- frame ----------------------------------------------------------------------------------
 
     public void banner() {
-        String title = "FitPulse  |  Intelligent Wellness and Fitness Center";
-        String border = "+" + "-".repeat(WIDTH - 2) + "+";
-        int left = (WIDTH - 2 - title.length()) / 2;
-        int right = WIDTH - 2 - title.length() - left;
-        out.println(paint(CYAN + BOLD, border));
-        out.println(paint(CYAN + BOLD, "|" + " ".repeat(left) + title + " ".repeat(right) + "|"));
-        out.println(paint(CYAN + BOLD, border));
+        String pulse = "─╱╲╱╲─▐█▌";  // ─╱╲╱╲─▐█▌ : the logo's pulse line into a dumbbell
+        String name = "FitPulse";
+        String slogan = "Intelligent Wellness and Fitness Center";
+        out.println(paint(TEAL, "╭" + "─".repeat(WIDTH - 2) + "╮"));
+        out.println(bannerLine("  " + pulse + "   " + name,
+                "  " + paint(MINT, pulse) + "   " + paint(BOLD, "Fit") + paint(MINT + BOLD, "Pulse")));
+        out.println(bannerLine("  " + " ".repeat(pulse.length()) + "   " + slogan,
+                "  " + " ".repeat(pulse.length()) + "   " + paint(DIM, slogan)));
+        out.println(paint(TEAL, "╰" + "─".repeat(WIDTH - 2) + "╯"));
+    }
+
+    /** One framed banner row: {@code plain} is the text without colour codes, used to size the padding. */
+    private String bannerLine(String plain, String painted) {
+        String padding = " ".repeat(Math.max(0, WIDTH - 2 - plain.length()));
+        return paint(TEAL, "│") + painted + padding + paint(TEAL, "│");
     }
 
     public void welcome(User user) {
@@ -94,7 +103,7 @@ public class ConsoleView {
             if (!option.section().equals(section)) {
                 section = option.section();
                 out.println();
-                out.println(paint(CYAN + BOLD, " " + section));
+                out.println(paint(MINT + BOLD, " " + section));
             }
             boolean allowed = option.allowed().test(user);
             String hint = allowed || option.audience().isEmpty() ? "" : option.audience();
@@ -121,7 +130,7 @@ public class ConsoleView {
 
     public void heading(String text) {
         out.println();
-        out.println(paint(YELLOW + BOLD, "== " + text + " =="));
+        out.println(paint(TEAL + BOLD, "== " + text + " =="));
     }
 
     // ---- data -----------------------------------------------------------------------------------

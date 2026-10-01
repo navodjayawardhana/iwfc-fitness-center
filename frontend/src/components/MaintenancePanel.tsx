@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { call } from '../api';
+import Drawer from './Drawer';
 import { useAction, useLoad } from '../hooks';
 import type { MaintenanceRequest, Report, Urgency, User } from '../types';
 import { btn, btnGhost, card, chip, field, muted } from '../ui';
@@ -34,6 +35,7 @@ export default function MaintenancePanel({ user, report }: Props) {
   const [form, setForm] = useState({ equipmentId: 'SB-04', description: '', urgency: 'MEDIUM' as Urgency });
   const [technician, setTechnician] = useState<Record<string, string>>({});
   const [note, setNote] = useState<Record<string, string>>({});
+  const [reporting, setReporting] = useState(false);
 
   if (failed) {
     return (
@@ -48,14 +50,24 @@ export default function MaintenancePanel({ user, report }: Props) {
     );
   }
 
-  const submit = (event: FormEvent) => {
+  const submit = async (event: FormEvent) => {
     event.preventDefault();
-    void run(() => call('POST', '/maintenance', form), 'Fault reported');
+    if (await run(() => call('POST', '/maintenance', form), 'Fault reported')) {
+      setReporting(false);
+      setForm({ equipmentId: 'SB-04', description: '', urgency: 'MEDIUM' });
+    }
   };
 
   return (
     <section>
-      <h2 className="mt-2 mb-3 text-xl font-semibold">Maintenance requests</h2>
+      <div className="mt-2 mb-3 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-xl font-semibold">Maintenance requests</h2>
+        {isInstructor && (
+          <button className={btn} onClick={() => setReporting(true)}>
+            + Report a fault
+          </button>
+        )}
+      </div>
       <div className="mb-4 grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3">
         {(requests ?? []).map((request) => (
           <article className={card} key={request.id}>
@@ -118,21 +130,29 @@ export default function MaintenancePanel({ user, report }: Props) {
         {requests && requests.length === 0 && <p className={muted}>No maintenance requests yet.</p>}
       </div>
 
-      {isInstructor && (
-        <form className={`${card} flex flex-wrap items-center gap-2`} onSubmit={submit}>
-          <h3 className="w-full font-semibold">Report a fault</h3>
-          <input className={field} placeholder="Equipment ID" value={form.equipmentId} onChange={(event) => setForm({ ...form, equipmentId: event.target.value })} />
-          <input className={field} placeholder="Describe the fault" value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} />
-          <select className={field} value={form.urgency} onChange={(event) => setForm({ ...form, urgency: event.target.value as Urgency })}>
-            {URGENCIES.map((urgency) => (
-              <option key={urgency}>{urgency}</option>
-            ))}
-          </select>
-          <button className={btn} type="submit">
+      <Drawer open={reporting} title="Report a fault" onClose={() => setReporting(false)}>
+        <form className="flex flex-col gap-3" onSubmit={(event) => void submit(event)}>
+          <label className="flex flex-col gap-1 text-sm">
+            Equipment ID
+            <input className={field} value={form.equipmentId} onChange={(event) => setForm({ ...form, equipmentId: event.target.value })} required />
+          </label>
+          <label className="flex flex-col gap-1 text-sm">
+            Describe the fault
+            <input className={field} value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} required />
+          </label>
+          <label className="flex flex-col gap-1 text-sm">
+            Urgency
+            <select className={field} value={form.urgency} onChange={(event) => setForm({ ...form, urgency: event.target.value as Urgency })}>
+              {URGENCIES.map((urgency) => (
+                <option key={urgency}>{urgency}</option>
+              ))}
+            </select>
+          </label>
+          <button className={`${btn} mt-2`} type="submit">
             Report
           </button>
         </form>
-      )}
+      </Drawer>
 
       {isAdmin && (
         <div className={card}>

@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from 'react';
-import { DEMO_USERS, describeError, signIn } from '../api';
+import { describeError, signIn } from '../api';
+import PasswordField from './PasswordField';
 import type { User } from '../types';
-import { btn, btnGhost, card, field, muted } from '../ui';
+import { brandText, btn, card, field, muted } from '../ui';
 
 interface Props {
   onSignedIn: (user: User) => void;
@@ -29,16 +30,16 @@ export default function LoginScreen({ onSignedIn }: Props) {
   };
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4">
-      <div className="mb-6 flex items-center gap-3">
-        <img src="/logo.svg" alt="" className="h-14 w-14" />
-        <div>
-          <h1 className="text-3xl font-bold tracking-wide">FitPulse</h1>
-          <p className={muted}>Intelligent Wellness and Fitness Center</p>
-        </div>
+    <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-10">
+      <div className="mb-8 flex flex-col items-center text-center">
+        <img src="/logo.svg" alt="" className="mb-4 h-16 w-auto drop-shadow-lg" />
+        <h1 className="text-4xl font-extrabold tracking-tight">
+          Fit<span className={brandText}>Pulse</span>
+        </h1>
+        <p className={`mt-1 ${muted}`}>Intelligent Wellness and Fitness Center</p>
       </div>
 
-      <form className={`${card} flex flex-col gap-3`} onSubmit={submit}>
+      <form className={`${card} flex flex-col gap-3 shadow-xl shadow-teal-900/5`} onSubmit={submit}>
         <h2 className="text-lg font-semibold">Sign in</h2>
         <label className="flex flex-col gap-1 text-sm">
           User id
@@ -52,9 +53,7 @@ export default function LoginScreen({ onSignedIn }: Props) {
         </label>
         <label className="flex flex-col gap-1 text-sm">
           Password
-          <input
-            className={field}
-            type="password"
+          <PasswordField
             autoComplete="current-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
@@ -70,17 +69,6 @@ export default function LoginScreen({ onSignedIn }: Props) {
           {busy ? 'Signing in…' : 'Sign in'}
         </button>
       </form>
-
-      <div className={`mt-4 text-sm ${muted}`}>
-        <p className="mb-2">Demo accounts (the demo password is in the README):</p>
-        <div className="flex flex-wrap gap-2">
-          {DEMO_USERS.map((demo) => (
-            <button key={demo.id} type="button" className={btnGhost} onClick={() => setUserId(demo.id)}>
-              {demo.label} ({demo.id})
-            </button>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

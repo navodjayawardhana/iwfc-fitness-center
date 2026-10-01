@@ -1,8 +1,9 @@
 import { useState, type FormEvent } from 'react';
 import { call } from '../api';
+import Drawer from './Drawer';
 import { useAction, useLoad } from '../hooks';
 import type { Equipment, Report, User } from '../types';
-import { btn, btnDanger, card, chip, field, muted } from '../ui';
+import { btn, btnDanger, chip, field, muted } from '../ui';
 
 const TYPES = ['TREADMILL', 'SPIN_BIKE', 'ROWING_MACHINE', 'HEART_RATE_MONITOR'];
 
@@ -35,18 +36,29 @@ export default function EquipmentPanel({ user, report }: Props) {
   const run = useAction(report, reload);
   const [form, setForm] = useState({ type: 'TREADMILL', id: '', name: '', location: 'Cardio Zone' });
   const [hours, setHours] = useState<Record<string, string>>({});
+  const [adding, setAdding] = useState(false);
 
   const isAdmin = user.role === 'Administrator';
   const isInstructor = user.role === 'Instructor';
 
-  const add = (event: FormEvent) => {
+  const add = async (event: FormEvent) => {
     event.preventDefault();
-    void run(() => call('POST', '/equipment', form), `Added ${form.id}`);
+    if (await run(() => call('POST', '/equipment', form), `Added ${form.id}`)) {
+      setAdding(false);
+      setForm({ type: 'TREADMILL', id: '', name: '', location: 'Cardio Zone' });
+    }
   };
 
   return (
     <section>
-      <h2 className="mt-2 mb-3 text-xl font-semibold">Equipment</h2>
+      <div className="mt-2 mb-3 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-xl font-semibold">Equipment</h2>
+        {isAdmin && (
+          <button className={btn} onClick={() => setAdding(true)}>
+            + Add equipment
+          </button>
+        )}
+      </div>
       <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
         <table className="w-full border-collapse text-left text-sm">
           <thead>
@@ -119,24 +131,35 @@ export default function EquipmentPanel({ user, report }: Props) {
         </table>
       </div>
 
-      {isAdmin ? (
-        <form className={`${card} mt-4 flex flex-wrap items-center gap-2`} onSubmit={add}>
-          <h3 className="w-full font-semibold">Add equipment</h3>
-          <select className={field} value={form.type} onChange={(event) => setForm({ ...form, type: event.target.value })}>
-            {TYPES.map((type) => (
-              <option key={type}>{type}</option>
-            ))}
-          </select>
-          <input className={field} placeholder="ID (e.g. TM-03)" value={form.id} onChange={(event) => setForm({ ...form, id: event.target.value })} />
-          <input className={field} placeholder="Name" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
-          <input className={field} placeholder="Location" value={form.location} onChange={(event) => setForm({ ...form, location: event.target.value })} />
-          <button className={btn} type="submit">
-            Add
+      {!isAdmin && <p className={`mt-4 ${muted}`}>Only administrators can add or deactivate equipment. Try switching user.</p>}
+
+      <Drawer open={adding} title="Add equipment" onClose={() => setAdding(false)}>
+        <form className="flex flex-col gap-3" onSubmit={(event) => void add(event)}>
+          <label className="flex flex-col gap-1 text-sm">
+            Type
+            <select className={field} value={form.type} onChange={(event) => setForm({ ...form, type: event.target.value })}>
+              {TYPES.map((type) => (
+                <option key={type}>{type}</option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1 text-sm">
+            ID
+            <input className={field} placeholder="e.g. TM-03" value={form.id} onChange={(event) => setForm({ ...form, id: event.target.value })} required />
+          </label>
+          <label className="flex flex-col gap-1 text-sm">
+            Name
+            <input className={field} value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required />
+          </label>
+          <label className="flex flex-col gap-1 text-sm">
+            Location
+            <input className={field} value={form.location} onChange={(event) => setForm({ ...form, location: event.target.value })} required />
+          </label>
+          <button className={`${btn} mt-2`} type="submit">
+            Add equipment
           </button>
         </form>
-      ) : (
-        <p className={`mt-4 ${muted}`}>Only administrators can add or deactivate equipment. Try switching user.</p>
-      )}
+      </Drawer>
     </section>
   );
 }

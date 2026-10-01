@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { call } from '../api';
+import Drawer from './Drawer';
 import { useAction, useLoad } from '../hooks';
 import TimetableView from './TimetableView';
 import type { Report, Session, User } from '../types';
@@ -40,11 +41,12 @@ export default function SessionsPanel({ user, report }: Props) {
   });
 
   const [view, setView] = useState<'list' | 'week'>('list');
+  const [scheduling, setScheduling] = useState(false);
 
   const isInstructor = user.role === 'Instructor';
   const isMember = user.role === 'Member';
 
-  const schedule = (event: FormEvent) => {
+  const schedule = async (event: FormEvent) => {
     event.preventDefault();
     const body = {
       id: form.id,
@@ -57,7 +59,9 @@ export default function SessionsPanel({ user, report }: Props) {
       weeks: Number(form.weeks),
       equipmentIds: form.equipment.split(',').map((id) => id.trim()).filter(Boolean),
     };
-    void run(() => call('POST', '/sessions', body), `Scheduled ${form.title}`);
+    if (await run(() => call('POST', '/sessions', body), `Scheduled ${form.title}`)) {
+      setScheduling(false);
+    }
   };
 
   const set = (key: keyof typeof form) => (event: { target: { value: string } }) => setForm({ ...form, [key]: event.target.value });
@@ -66,13 +70,18 @@ export default function SessionsPanel({ user, report }: Props) {
     <section>
       <div className="mt-2 mb-3 flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-xl font-semibold">Sessions</h2>
-        <div className="flex gap-1" role="group" aria-label="Session view">
+        <div className="flex flex-wrap gap-1" role="group" aria-label="Session view">
           <button className={view === 'list' ? btn : btnGhost} aria-pressed={view === 'list'} onClick={() => setView('list')}>
             List
           </button>
           <button className={view === 'week' ? btn : btnGhost} aria-pressed={view === 'week'} onClick={() => setView('week')}>
             Week
           </button>
+          {isInstructor && (
+            <button className={btn} onClick={() => setScheduling(true)}>
+              + Schedule a session
+            </button>
+          )}
         </div>
       </div>
       {view === 'week' && <TimetableView sessions={sessions ?? []} />}
@@ -121,29 +130,53 @@ export default function SessionsPanel({ user, report }: Props) {
         ))}
       </div>
 
-      {isInstructor ? (
-        <form className={`${card} flex flex-wrap items-center gap-2`} onSubmit={schedule}>
-          <h3 className="w-full font-semibold">Schedule a session</h3>
-          <input className={field} placeholder="ID (e.g. S-9)" value={form.id} onChange={set('id')} />
-          <input className={field} placeholder="Title" value={form.title} onChange={set('title')} />
-          <input className={field} placeholder="Studio" value={form.studio} onChange={set('studio')} />
-          <input className={field} type="date" value={form.date} onChange={set('date')} />
-          <input className={field} type="time" value={form.start} onChange={set('start')} />
-          <input className={field} type="time" value={form.end} onChange={set('end')} />
-          <input className={`${field} w-24`} type="number" min="1" title="Capacity" value={form.capacity} onChange={set('capacity')} />
-          <input className={field} placeholder="Equipment IDs, comma separated" value={form.equipment} onChange={set('equipment')} />
-          <label className={`flex items-center gap-1.5 text-sm ${muted}`}>
-            Repeat weekly for
-            <input className={`${field} w-16`} type="number" min="1" max="12" value={form.weeks} onChange={set('weeks')} />
-            weeks
+      {!isInstructor && <p className={muted}>{isMember ? 'Book a session above.' : 'Only instructors schedule sessions.'}</p>}
+
+      <Drawer open={scheduling} title="Schedule a session" onClose={() => setScheduling(false)}>
+        <form className="flex flex-col gap-3" onSubmit={(event) => void schedule(event)}>
+          <label className="flex flex-col gap-1 text-sm">
+            ID
+            <input className={field} placeholder="e.g. S-9" value={form.id} onChange={set('id')} required />
           </label>
-          <button className={btn} type="submit">
+          <label className="flex flex-col gap-1 text-sm">
+            Title
+            <input className={field} value={form.title} onChange={set('title')} required />
+          </label>
+          <label className="flex flex-col gap-1 text-sm">
+            Studio
+            <input className={field} value={form.studio} onChange={set('studio')} required />
+          </label>
+          <label className="flex flex-col gap-1 text-sm">
+            Date
+            <input className={field} type="date" value={form.date} onChange={set('date')} required />
+          </label>
+          <div className="flex gap-3">
+            <label className="flex flex-1 flex-col gap-1 text-sm">
+              Starts
+              <input className={field} type="time" value={form.start} onChange={set('start')} required />
+            </label>
+            <label className="flex flex-1 flex-col gap-1 text-sm">
+              Ends
+              <input className={field} type="time" value={form.end} onChange={set('end')} required />
+            </label>
+          </div>
+          <label className="flex flex-col gap-1 text-sm">
+            Capacity
+            <input className={field} type="number" min="1" value={form.capacity} onChange={set('capacity')} required />
+          </label>
+          <label className="flex flex-col gap-1 text-sm">
+            Equipment IDs (comma separated, optional)
+            <input className={field} placeholder="e.g. TM-01, SB-04" value={form.equipment} onChange={set('equipment')} />
+          </label>
+          <label className="flex flex-col gap-1 text-sm">
+            Repeat weekly for (weeks)
+            <input className={field} type="number" min="1" max="12" value={form.weeks} onChange={set('weeks')} />
+          </label>
+          <button className={`${btn} mt-2`} type="submit">
             Schedule
           </button>
         </form>
-      ) : (
-        <p className={muted}>{isMember ? 'Book a session above.' : 'Only instructors schedule sessions.'}</p>
-      )}
+      </Drawer>
     </section>
   );
 }
