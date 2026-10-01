@@ -8,6 +8,9 @@ import java.util.Objects;
  * Entity (aggregate root): one piece of fitness equipment, identified by its unique id.
  * It owns its own rules: usage tracking, the preventative maintenance alert and status changes.
  * The constructor is package-private so equipment is created through the equipment factory.
+ *
+ * <p>CMP 7001 mapping: Functional Requirement 1 — Equipment Tracking: unique id, status, location,
+ * cumulative usage hours and the preventative maintenance alert; Encapsulation (LO1).</p>
  */
 public class Equipment {
 

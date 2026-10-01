@@ -10,6 +10,9 @@ import java.util.Map;
 /**
  * Subject of the Observer pattern. It knows nothing about who is listening: use cases publish
  * events here and every subscribed {@link MaintenanceObserver} is told. It also keeps each user's inbox.
+ *
+ * <p>CMP 7001 mapping: Required Design Patterns — Behavioural: Observer, subject (LO4);
+ * Functional Requirement 3 — notifications triggered automatically when a request status changes.</p>
  */
 public class NotificationService {
 

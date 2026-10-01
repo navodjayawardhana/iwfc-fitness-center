@@ -27,6 +27,8 @@ import java.util.List;
  * Facade (structural pattern): the single, simple entry point that the console menu and the REST API use.
  * It hides the use cases, repositories and notification wiring behind one small set of methods,
  * so delivery mechanisms never depend on the inner structure of the system.
+ *
+ * <p>CMP 7001 mapping: Required Design Patterns — Structural: Facade (LO4).</p>
  */
 public class IwfcFacade {
 

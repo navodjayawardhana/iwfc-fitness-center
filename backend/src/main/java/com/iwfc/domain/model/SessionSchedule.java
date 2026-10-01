@@ -13,6 +13,9 @@ import java.util.Optional;
  * Aggregate root for all fitness sessions. Sessions are only added through it, so the rules
  * (operating hours, no double-booking of studio, instructor or equipment) can never be bypassed.
  * It works over a {@link Repository}, and saves after every change so a database copy stays current.
+ *
+ * <p>CMP 7001 mapping: Functional Requirement 2 — Session Scheduling: strict double-booking prevention,
+ * operating-hours validation and recurring weekly classes (the optional enhancement).</p>
  */
 public class SessionSchedule {
 

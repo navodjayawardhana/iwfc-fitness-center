@@ -13,6 +13,9 @@ import java.util.Base64;
  * Adapter: PBKDF2-HMAC-SHA256 from the JDK, with a random salt per password.
  * Stored form: {@code pbkdf2$<iterations>$<salt>$<hash>}. The iteration count is inside the string,
  * so it can be raised later without breaking hashes that already exist.
+ *
+ * <p>CMP 7001 mapping: pattern-influenced design — a concrete Strategy for {@link PasswordHasher};
+ * LO3 — secure software: salted PBKDF2 key stretching and constant-time comparison.</p>
  */
 public final class Pbkdf2PasswordHasher implements PasswordHasher {
 

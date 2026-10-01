@@ -26,6 +26,9 @@ import static org.junit.jupiter.api.Assertions.*;
  * Robustness verification (brief: "intentional failing" scenarios). Each test drives the whole system
  * into an error condition on purpose and proves the right custom exception is thrown, carries a useful
  * message, and leaves the system state unchanged.
+ *
+ * <p>CMP 7001 mapping: Unit Testing — JUnit validation of scheduling rules, maintenance workflow
+ * transitions and every mandatory custom exception (LO3).</p>
  */
 class RobustnessVerificationTest {
 

@@ -1,6 +1,10 @@
 package com.iwfc.domain.model;
 
-/** Factory (creational pattern): the one place that turns a {@link Role} into the matching User subclass. */
+/**
+ * Factory (creational pattern): the one place that turns a {@link Role} into the matching User subclass.
+ *
+ * <p>CMP 7001 mapping: Required Design Patterns — Creational: Factory (LO4).</p>
+ */
 public final class UserFactory {
 
     private UserFactory() {
